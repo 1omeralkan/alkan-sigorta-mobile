@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:alkan_sigorta_mobile/core/constants/app_theme.dart';
+import 'package:alkan_sigorta_mobile/core/routes/app_router.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,17 +20,8 @@ class AlkanSigortaApp extends StatelessWidget {
       title: 'Alkan Sigorta',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const Scaffold(
-        body: Center(
-          child: Text(
-            'Alkan Sigorta',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
+      onGenerateRoute: AppRouter.onGenerateRoute,
+      initialRoute: '/',
     );
   }
 }
