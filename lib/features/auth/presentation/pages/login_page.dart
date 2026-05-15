@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../bloc/auth_cubit.dart';
+import '../bloc/auth_state.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -10,8 +13,11 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
   bool _isPasswordVisible = false;
-  bool _isLoading = false;
 
   static const String _appTitle = 'Alkan Sigorta';
   static const String _subtitle = 'Sisteme Giriş Yapın';
@@ -23,37 +29,62 @@ class _LoginPageState extends State<LoginPage> {
   static const String _registerText = 'Hemen Kayıt Ol';
   static const double _maxFormWidth = 500.0;
 
-  Future<void> _handleLogin() async {
-    setState(() {
-      _isLoading = true;
-    });
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
-    await Future.delayed(const Duration(seconds: 2));
+  void _handleLogin() {
+    if (!_formKey.currentState!.validate()) return;
 
-    if (mounted) {
-      setState(() {
-        _isLoading = false;
-      });
-    }
+    context.read<AuthCubit>().login(
+          _emailController.text,
+          _passwordController.text,
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: _maxFormWidth),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSizes.lg),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
+    return BlocConsumer<AuthCubit, AuthState>(
+      listener: (context, state) {
+        if (state is AuthFailure) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+            ),
+          );
+        } else if (state is AuthSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Giriş Başarılı!'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      },
+      builder: (context, state) {
+        final isLoading = state is AuthLoading;
+
+        return Scaffold(
+          backgroundColor: AppColors.background,
+          body: SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: _maxFormWidth),
+                  child: Form(
+                    key: _formKey,
+                    child: Padding(
+                      padding: const EdgeInsets.all(AppSizes.lg),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
                 const SizedBox(height: AppSizes.xxl),
                 Icon(
                   Icons.health_and_safety_outlined,
@@ -78,102 +109,128 @@ class _LoginPageState extends State<LoginPage> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppSizes.lg),
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: _emailLabel,
-                    prefixIcon: const Icon(Icons.person_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-                    ),
-                  ),
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction: TextInputAction.next,
-                ),
-                const SizedBox(height: AppSizes.md),
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: _passwordLabel,
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _isPasswordVisible
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _isPasswordVisible = !_isPasswordVisible;
-                        });
-                      },
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
-                    ),
-                  ),
-                  obscureText: !_isPasswordVisible,
-                  textInputAction: TextInputAction.done,
-                ),
-                const SizedBox(height: AppSizes.sm),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {},
-                    child: Text(
-                      _forgotPasswordText,
-                      style: textTheme.labelMedium?.copyWith(
-                        color: AppColors.secondary,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppSizes.md),
-                SizedBox(
-                  width: double.infinity,
-                  height: AppSizes.buttonHeightLarge,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
-                    child: _isLoading
-                        ? const SizedBox(
-                            height: AppSizes.iconMedium,
-                            width: AppSizes.iconMedium,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2.5,
-                              color: AppColors.textOnPrimary,
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: InputDecoration(
+                              labelText: _emailLabel,
+                              prefixIcon: const Icon(Icons.person_outline),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                              ),
                             ),
-                          )
-                        : const Text(_loginButtonText),
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return 'E-posta alanı boş bırakılamaz';
+                              }
+                              final emailRegex = RegExp(
+                                r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
+                              );
+                              if (!emailRegex.hasMatch(value.trim())) {
+                                return 'Geçerli bir e-posta adresi giriniz';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: AppSizes.md),
+                          TextFormField(
+                            controller: _passwordController,
+                            decoration: InputDecoration(
+                              labelText: _passwordLabel,
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _isPasswordVisible
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    _isPasswordVisible = !_isPasswordVisible;
+                                  });
+                                },
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                              ),
+                            ),
+                            obscureText: !_isPasswordVisible,
+                            textInputAction: TextInputAction.done,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Şifre alanı boş bırakılamaz';
+                              }
+                              if (value.length < 6) {
+                                return 'Şifre en az 6 karakter olmalıdır';
+                              }
+                              return null;
+                            },
+                          ),
+                          const SizedBox(height: AppSizes.sm),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () {},
+                              child: Text(
+                                _forgotPasswordText,
+                                style: textTheme.labelMedium?.copyWith(
+                                  color: AppColors.secondary,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: AppSizes.md),
+                          SizedBox(
+                            width: double.infinity,
+                            height: AppSizes.buttonHeightLarge,
+                            child: ElevatedButton(
+                              onPressed: isLoading ? null : _handleLogin,
+                              child: isLoading
+                                  ? const SizedBox(
+                                      height: AppSizes.iconMedium,
+                                      width: AppSizes.iconMedium,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.5,
+                                        color: AppColors.textOnPrimary,
+                                      ),
+                                    )
+                                  : const Text(_loginButtonText),
+                            ),
+                          ),
+                          const SizedBox(height: AppSizes.lg),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                _noAccountText,
+                                style: textTheme.bodyMedium?.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () {},
+                                child: Text(
+                                  _registerText,
+                                  style: textTheme.labelLarge?.copyWith(
+                                    color: AppColors.secondary,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSizes.xxl),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSizes.lg),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      _noAccountText,
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        _registerText,
-                        style: textTheme.labelLarge?.copyWith(
-                          color: AppColors.secondary,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: AppSizes.xxl),
-                  ],
                 ),
               ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
