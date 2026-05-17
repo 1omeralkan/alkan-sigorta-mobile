@@ -1,18 +1,25 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/repositories/auth_repository.dart';
 import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit() : super(const AuthInitial());
+  final AuthRepository authRepository;
+
+  AuthCubit(this.authRepository) : super(const AuthInitial());
 
   Future<void> login(String email, String password) async {
     emit(const AuthLoading());
 
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final result = await authRepository.login(email, password);
 
-    if (email == 'test@alkan.com' && password == '123456') {
-      emit(const AuthSuccess());
-    } else {
-      emit(const AuthFailure('E-posta veya şifre hatalı.'));
+      if (result) {
+        emit(const AuthSuccess());
+      } else {
+        emit(const AuthFailure('Giriş başarısız oldu.'));
+      }
+    } catch (e) {
+      emit(AuthFailure(e.toString().replaceAll('Exception: ', '')));
     }
   }
 }
