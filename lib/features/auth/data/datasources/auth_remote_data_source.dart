@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/network/dio_client.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<bool> login(String email, String password);
+  Future<String> login(String email, String password);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -11,7 +11,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   AuthRemoteDataSourceImpl(this._dioClient);
 
   @override
-  Future<bool> login(String email, String password) async {
+  Future<String> login(String email, String password) async {
     try {
       final response = await _dioClient.client.post(
         '/auth/login',
@@ -23,11 +23,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final token = response.data['token'];
-        print('Giriş Başarılı! Token: $token');
-        return true;
+        if (token == null || token.isEmpty) {
+          throw Exception('Token alınamadı');
+        }
+        return token;
       }
 
-      return false;
+      throw Exception('Giriş başarısız oldu');
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
         throw Exception('Email veya şifre hatalı');

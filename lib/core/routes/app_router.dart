@@ -4,7 +4,9 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/bloc/auth_cubit.dart';
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/home/presentation/pages/home_page.dart';
 import '../../core/network/dio_client.dart';
+import '../../core/services/storage_service.dart';
 
 class AppRouter {
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
@@ -15,13 +17,18 @@ class AppRouter {
             final dioClient = DioClient();
             final authRemoteDataSource = AuthRemoteDataSourceImpl(dioClient);
             final authRepository = AuthRepositoryImpl(authRemoteDataSource);
-            final authCubit = AuthCubit(authRepository);
+            final storageService = StorageService();
+            final authCubit = AuthCubit(authRepository, storageService);
 
             return BlocProvider(
               create: (_) => authCubit,
               child: const LoginPage(),
             );
           },
+        );
+      case '/home':
+        return MaterialPageRoute(
+          builder: (_) => const HomePage(),
         );
       default:
         return MaterialPageRoute(

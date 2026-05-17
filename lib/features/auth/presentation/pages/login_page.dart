@@ -59,12 +59,7 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
         } else if (state is AuthSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Giriş Başarılı!'),
-              backgroundColor: AppColors.success,
-            ),
-          );
+          Navigator.pushReplacementNamed(context, '/home');
         }
       },
       builder: (context, state) {
