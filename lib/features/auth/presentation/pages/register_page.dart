@@ -393,7 +393,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           // Telefon Ülke Kodu Dropdown
                           DropdownButtonFormField<int>(
-                            key: ValueKey(_selectedPhoneCountryId),
+                            key: const Key('phone_country_dropdown'),
+                            value: _selectedPhoneCountryId,
                             decoration: InputDecoration(
                               labelText: 'Telefon Ülke Kodu',
                               prefixIcon: const Icon(Icons.flag_outlined),
@@ -404,7 +405,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             items: state.isLoadingCountries
                                 ? []
-                                : state.countries.map((country) {
+                                : state.countries
+                                    .where((country) => country.id != null)
+                                    .map((country) {
                                     return DropdownMenuItem<int>(
                                       value: country.id,
                                       child: Text(
@@ -464,7 +467,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           // Adres Ülke Dropdown
                           DropdownButtonFormField<int>(
-                            key: ValueKey(_selectedAddressCountryId),
+                            key: const Key('address_country_dropdown'),
+                            value: _selectedAddressCountryId,
                             decoration: InputDecoration(
                               labelText: 'Adres Ülkesi',
                               prefixIcon: const Icon(Icons.public_outlined),
@@ -475,7 +479,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             items: state.isLoadingCountries
                                 ? []
-                                : state.countries.map((country) {
+                                : state.countries
+                                    .where((country) => country.id != null)
+                                    .map((country) {
                                     return DropdownMenuItem<int>(
                                       value: country.id,
                                       child: Text(country.name),
@@ -502,7 +508,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
                           // Adres Şehir Dropdown
                           DropdownButtonFormField<int>(
-                            key: ValueKey(_selectedAddressCityId),
+                            key: const Key('address_city_dropdown'),
+                            value: _selectedAddressCityId,
                             decoration: InputDecoration(
                               labelText: 'Adres Şehri',
                               prefixIcon: const Icon(Icons.location_on_outlined),
@@ -513,7 +520,9 @@ class _RegisterPageState extends State<RegisterPage> {
                             ),
                             items: state.isLoadingCities
                                 ? []
-                                : state.cities.map((city) {
+                                : state.cities
+                                    .where((city) => city.id != null)
+                                    .map((city) {
                                     return DropdownMenuItem<int>(
                                       value: city.id,
                                       child: Text(city.name),
