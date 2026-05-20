@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/bloc/auth_cubit.dart';
+import '../../features/auth/presentation/bloc/register_cubit.dart';
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/home/presentation/pages/home_page.dart';
@@ -23,6 +25,20 @@ class AppRouter {
             return BlocProvider(
               create: (_) => authCubit,
               child: const LoginPage(),
+            );
+          },
+        );
+      case '/register':
+        return MaterialPageRoute(
+          builder: (_) {
+            final dioClient = DioClient();
+            final authRemoteDataSource = AuthRemoteDataSourceImpl(dioClient);
+            final authRepository = AuthRepositoryImpl(authRemoteDataSource);
+            final registerCubit = RegisterCubit(authRepository);
+
+            return BlocProvider(
+              create: (_) => registerCubit,
+              child: const RegisterPage(),
             );
           },
         );

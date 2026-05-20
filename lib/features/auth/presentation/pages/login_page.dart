@@ -204,7 +204,9 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               TextButton(
-                                onPressed: () {},
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/register');
+                                },
                                 child: Text(
                                   _registerText,
                                   style: textTheme.labelLarge?.copyWith(
