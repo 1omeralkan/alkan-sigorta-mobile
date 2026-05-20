@@ -30,6 +30,11 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isPasswordVisible = false;
   DateTime? _selectedDate;
 
+  // Dropdown seçimleri
+  int? _selectedAddressCountryId;
+  int? _selectedAddressCityId;
+  int? _selectedPhoneCountryId;
+
   static const String _pageTitle = 'Kayıt Ol';
   static const String _subtitle = 'Yeni Hesap Oluşturun';
   static const String _registerButtonText = 'Kayıt Ol';
@@ -102,9 +107,12 @@ class _RegisterPageState extends State<RegisterPage> {
       dogumYeri: _dogumYeriController.text.trim().isNotEmpty
           ? _dogumYeriController.text.trim()
           : null,
+      addressCountryId: _selectedAddressCountryId,
+      addressCityId: _selectedAddressCityId,
       openAddress: _addressController.text.trim().isNotEmpty
           ? _addressController.text.trim()
           : null,
+      phoneCountryId: _selectedPhoneCountryId,
       phoneNumber: _phoneNumberController.text.trim(),
     );
 
@@ -383,6 +391,40 @@ class _RegisterPageState extends State<RegisterPage> {
                           ),
                           const SizedBox(height: AppSizes.md),
 
+                          // Telefon Ülke Kodu Dropdown
+                          DropdownButtonFormField<int>(
+                            key: ValueKey(_selectedPhoneCountryId),
+                            decoration: InputDecoration(
+                              labelText: 'Telefon Ülke Kodu',
+                              prefixIcon: const Icon(Icons.flag_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppSizes.radiusMedium),
+                              ),
+                            ),
+                            items: state.isLoadingCountries
+                                ? []
+                                : state.countries.map((country) {
+                                    return DropdownMenuItem<int>(
+                                      value: country.id,
+                                      child: Text(
+                                        '${country.name} ${country.phoneCode != null ? "(${country.phoneCode})" : ""}',
+                                      ),
+                                    );
+                                  }).toList(),
+                            onChanged: state.isLoadingCountries
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      _selectedPhoneCountryId = value;
+                                    });
+                                  },
+                            hint: state.isLoadingCountries
+                                ? const Text('Yükleniyor...')
+                                : const Text('Ülke seçiniz'),
+                          ),
+                          const SizedBox(height: AppSizes.md),
+
                           // Telefon Numarası
                           TextFormField(
                             controller: _phoneNumberController,
@@ -417,6 +459,79 @@ class _RegisterPageState extends State<RegisterPage> {
                               }
                               return null;
                             },
+                          ),
+                          const SizedBox(height: AppSizes.md),
+
+                          // Adres Ülke Dropdown
+                          DropdownButtonFormField<int>(
+                            key: ValueKey(_selectedAddressCountryId),
+                            decoration: InputDecoration(
+                              labelText: 'Adres Ülkesi',
+                              prefixIcon: const Icon(Icons.public_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppSizes.radiusMedium),
+                              ),
+                            ),
+                            items: state.isLoadingCountries
+                                ? []
+                                : state.countries.map((country) {
+                                    return DropdownMenuItem<int>(
+                                      value: country.id,
+                                      child: Text(country.name),
+                                    );
+                                  }).toList(),
+                            onChanged: state.isLoadingCountries
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      _selectedAddressCountryId = value;
+                                      _selectedAddressCityId = null;
+                                    });
+                                    if (value != null) {
+                                      context.read<RegisterCubit>().loadCities(value);
+                                    } else {
+                                      context.read<RegisterCubit>().clearCities();
+                                    }
+                                  },
+                            hint: state.isLoadingCountries
+                                ? const Text('Yükleniyor...')
+                                : const Text('Ülke seçiniz'),
+                          ),
+                          const SizedBox(height: AppSizes.md),
+
+                          // Adres Şehir Dropdown
+                          DropdownButtonFormField<int>(
+                            key: ValueKey(_selectedAddressCityId),
+                            decoration: InputDecoration(
+                              labelText: 'Adres Şehri',
+                              prefixIcon: const Icon(Icons.location_on_outlined),
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(AppSizes.radiusMedium),
+                              ),
+                            ),
+                            items: state.isLoadingCities
+                                ? []
+                                : state.cities.map((city) {
+                                    return DropdownMenuItem<int>(
+                                      value: city.id,
+                                      child: Text(city.name),
+                                    );
+                                  }).toList(),
+                            onChanged: (_selectedAddressCountryId == null ||
+                                    state.isLoadingCities)
+                                ? null
+                                : (value) {
+                                    setState(() {
+                                      _selectedAddressCityId = value;
+                                    });
+                                  },
+                            hint: _selectedAddressCountryId == null
+                                ? const Text('Önce ülke seçiniz')
+                                : state.isLoadingCities
+                                    ? const Text('Yükleniyor...')
+                                    : const Text('Şehir seçiniz'),
                           ),
                           const SizedBox(height: AppSizes.md),
 

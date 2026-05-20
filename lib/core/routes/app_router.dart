@@ -5,6 +5,7 @@ import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/auth/presentation/bloc/auth_cubit.dart';
 import '../../features/auth/presentation/bloc/register_cubit.dart';
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
+import '../../features/auth/data/datasources/parameter_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../core/network/dio_client.dart';
@@ -33,8 +34,9 @@ class AppRouter {
           builder: (_) {
             final dioClient = DioClient();
             final authRemoteDataSource = AuthRemoteDataSourceImpl(dioClient);
+            final parameterRemoteDataSource = ParameterRemoteDataSourceImpl(dioClient);
             final authRepository = AuthRepositoryImpl(authRemoteDataSource);
-            final registerCubit = RegisterCubit(authRepository);
+            final registerCubit = RegisterCubit(authRepository, parameterRemoteDataSource);
 
             return BlocProvider(
               create: (_) => registerCubit,
