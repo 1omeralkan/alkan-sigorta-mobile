@@ -1,8 +1,10 @@
 import 'package:dio/dio.dart';
+import '../services/storage_service.dart';
 
 class DioClient {
   static final DioClient _instance = DioClient._internal();
   late final Dio dio;
+  final StorageService _storageService = StorageService();
 
   factory DioClient() {
     return _instance;
@@ -17,6 +19,19 @@ class DioClient {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
+        },
+      ),
+    );
+
+    // Token Interceptor
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) async {
+          final token = await _storageService.getToken();
+          if (token != null && token.isNotEmpty) {
+            options.headers['Authorization'] = 'Bearer $token';
+          }
+          handler.next(options);
         },
       ),
     );

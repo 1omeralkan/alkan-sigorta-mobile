@@ -56,6 +56,31 @@ class HomePage extends StatelessWidget {
                 height: 50,
                 child: ElevatedButton.icon(
                   onPressed: () {
+                    Navigator.pushNamed(context, '/application-create');
+                  },
+                  icon: const Icon(Icons.assignment_add),
+                  label: const Text(
+                    'Yeni Başvuru Oluştur',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSizes.md),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () {
                     Navigator.pushReplacementNamed(context, '/');
                   },
                   icon: const Icon(Icons.logout),

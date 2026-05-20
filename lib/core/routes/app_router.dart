@@ -8,6 +8,10 @@ import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/auth/data/datasources/parameter_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/application/presentation/pages/application_create_page.dart';
+import '../../features/application/presentation/bloc/application_cubit.dart';
+import '../../features/application/data/datasources/application_remote_data_source.dart';
+import '../../features/application/data/repositories/application_repository_impl.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/services/storage_service.dart';
 
@@ -47,6 +51,20 @@ class AppRouter {
       case '/home':
         return MaterialPageRoute(
           builder: (_) => const HomePage(),
+        );
+      case '/application-create':
+        return MaterialPageRoute(
+          builder: (_) {
+            final dioClient = DioClient();
+            final applicationRemoteDataSource = ApplicationRemoteDataSourceImpl(dioClient);
+            final applicationRepository = ApplicationRepositoryImpl(applicationRemoteDataSource);
+            final applicationCubit = ApplicationCubit(applicationRepository);
+
+            return BlocProvider(
+              create: (_) => applicationCubit,
+              child: const ApplicationCreatePage(),
+            );
+          },
         );
       default:
         return MaterialPageRoute(
