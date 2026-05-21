@@ -1,6 +1,7 @@
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_data_source.dart';
 import '../models/customer_save_request.dart';
+import '../models/login_response.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource _remoteDataSource;
@@ -8,10 +9,10 @@ class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl(this._remoteDataSource);
 
   @override
-  Future<String> login(String email, String password) async {
+  Future<LoginResponse> login(String email, String password) async {
     try {
-      final token = await _remoteDataSource.login(email, password);
-      return token;
+      final response = await _remoteDataSource.login(email, password);
+      return response;
     } catch (e) {
       rethrow;
     }

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
+import '../../../../core/services/storage_service.dart';
 import '../../data/models/application_save_request.dart';
 import '../bloc/application_cubit.dart';
 import '../bloc/application_state.dart';
@@ -39,7 +40,7 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
     super.dispose();
   }
 
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedProductId == null) {
@@ -72,13 +73,29 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
       return;
     }
 
+    // Storage'dan customerId al
+    final storageService = StorageService();
+    final customerId = await storageService.getCustomerId();
+
+    if (!mounted) return;
+
+    if (customerId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
+
     // Taksit sayısını belirle: Peşin ise 1, Taksitli ise kullanıcının girdiği değer
     final installmentCount = _selectedPaymentType == 'P'
         ? 1
         : int.parse(_installmentCountController.text);
 
     final request = ApplicationSaveRequest(
-      customerId: 1, // Test için sabit değer
+      customerId: customerId,
       productId: _selectedProductId!,
       description: 'Mobil uygulama üzerinden oluşturulan başvuru',
       paymentTypeCode: _selectedPaymentType!,
@@ -187,6 +204,7 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
 
                               if (state is ProductLoaded) {
                                 return DropdownButtonFormField<int>(
+                                  isExpanded: true,
                                   decoration: InputDecoration(
                                     labelText: 'Ürün Seçimi *',
                                     prefixIcon: const Icon(Icons.shopping_bag_outlined),
@@ -199,6 +217,7 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
                                       value: product.id,
                                       child: Text(
                                         '${product.name} - ${product.amount.toStringAsFixed(2)} TL',
+                                        overflow: TextOverflow.ellipsis,
                                       ),
                                     );
                                   }).toList(),

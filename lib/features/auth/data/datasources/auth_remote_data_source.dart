@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/dio_client.dart';
 import '../models/customer_save_request.dart';
+import '../models/login_response.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<String> login(String email, String password);
+  Future<LoginResponse> login(String email, String password);
   Future<void> register(CustomerSaveRequest request);
 }
 
@@ -13,7 +14,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   AuthRemoteDataSourceImpl(this._dioClient);
 
   @override
-  Future<String> login(String email, String password) async {
+  Future<LoginResponse> login(String email, String password) async {
     try {
       final response = await _dioClient.client.post(
         '/auth/login',
@@ -24,11 +25,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final token = response.data['token'];
-        if (token == null || token.isEmpty) {
-          throw Exception('Token alınamadı');
-        }
-        return token;
+        return LoginResponse.fromJson(response.data);
       }
 
       throw Exception('Giriş başarısız oldu');

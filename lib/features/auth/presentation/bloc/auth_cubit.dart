@@ -14,9 +14,10 @@ class AuthCubit extends Cubit<AuthState> {
     emit(const AuthLoading());
 
     try {
-      final token = await authRepository.login(email, password);
+      final response = await authRepository.login(email, password);
 
-      await storageService.saveToken(token);
+      await storageService.saveToken(response.token);
+      await storageService.saveCustomerId(response.customerId);
 
       emit(const AuthSuccess());
     } catch (e) {

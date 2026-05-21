@@ -14,6 +14,7 @@ class StorageService {
         );
 
   static const String _tokenKey = 'auth_token';
+  static const String _customerIdKey = 'customer_id';
 
   Future<void> saveToken(String token) async {
     try {
@@ -42,5 +43,30 @@ class StorageService {
   Future<bool> hasToken() async {
     final token = await getToken();
     return token != null && token.isNotEmpty;
+  }
+
+  Future<void> saveCustomerId(int customerId) async {
+    try {
+      await _secureStorage.write(key: _customerIdKey, value: customerId.toString());
+    } catch (e) {
+      throw Exception('Customer ID kaydedilemedi: $e');
+    }
+  }
+
+  Future<int?> getCustomerId() async {
+    try {
+      final value = await _secureStorage.read(key: _customerIdKey);
+      return value != null ? int.tryParse(value) : null;
+    } catch (e) {
+      throw Exception('Customer ID okunamadı: $e');
+    }
+  }
+
+  Future<void> deleteCustomerId() async {
+    try {
+      await _secureStorage.delete(key: _customerIdKey);
+    } catch (e) {
+      throw Exception('Customer ID silinemedi: $e');
+    }
   }
 }
