@@ -6,6 +6,8 @@ import '../../../../core/constants/app_sizes.dart';
 import '../../data/models/application_save_request.dart';
 import '../bloc/application_cubit.dart';
 import '../bloc/application_state.dart';
+import '../../../product/presentation/bloc/product_cubit.dart';
+import '../../../product/presentation/bloc/product_state.dart';
 
 class ApplicationCreatePage extends StatefulWidget {
   const ApplicationCreatePage({super.key});
@@ -23,6 +25,7 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
 
   String? _selectedGender;
   String? _selectedPaymentType;
+  int? _selectedProductId;
 
   static const String _pageTitle = 'Yeni Başvuru Oluştur';
   static const double _maxFormWidth = 600.0;
@@ -38,6 +41,16 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
 
   void _handleSubmit() {
     if (!_formKey.currentState!.validate()) return;
+
+    if (_selectedProductId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Lütfen ürün seçiniz'),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
 
     if (_selectedGender == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -66,7 +79,7 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
 
     final request = ApplicationSaveRequest(
       customerId: 1, // Test için sabit değer
-      productId: 1, // Test için sabit değer
+      productId: _selectedProductId!,
       description: 'Mobil uygulama üzerinden oluşturulan başvuru',
       paymentTypeCode: _selectedPaymentType!,
       installmentCount: installmentCount,
@@ -147,6 +160,89 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
                             ),
                           ),
                           const SizedBox(height: AppSizes.xl),
+
+                          // Ürün Seçimi
+                          BlocBuilder<ProductCubit, ProductState>(
+                            builder: (context, state) {
+                              if (state is ProductLoading) {
+                                return Container(
+                                  padding: const EdgeInsets.all(AppSizes.md),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: AppColors.textSecondary),
+                                    borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                                  ),
+                                  child: const Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(strokeWidth: 2),
+                                      ),
+                                      SizedBox(width: AppSizes.md),
+                                      Text('Ürünler yükleniyor...'),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              if (state is ProductLoaded) {
+                                return DropdownButtonFormField<int>(
+                                  decoration: InputDecoration(
+                                    labelText: 'Ürün Seçimi *',
+                                    prefixIcon: const Icon(Icons.shopping_bag_outlined),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                                    ),
+                                  ),
+                                  items: state.products.map((product) {
+                                    return DropdownMenuItem<int>(
+                                      value: product.id,
+                                      child: Text(
+                                        '${product.name} - ${product.amount.toStringAsFixed(2)} TL',
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _selectedProductId = value;
+                                    });
+                                  },
+                                  validator: (value) {
+                                    if (value == null) {
+                                      return 'Ürün seçimi zorunludur';
+                                    }
+                                    return null;
+                                  },
+                                );
+                              }
+
+                              if (state is ProductFailure) {
+                                return Container(
+                                  padding: const EdgeInsets.all(AppSizes.md),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error.withValues(alpha: 0.1),
+                                    border: Border.all(color: AppColors.error),
+                                    borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(Icons.error_outline, color: AppColors.error),
+                                      const SizedBox(width: AppSizes.md),
+                                      Expanded(
+                                        child: Text(
+                                          state.message,
+                                          style: const TextStyle(color: AppColors.error),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                          const SizedBox(height: AppSizes.md),
 
                           // Yaş
                           TextFormField(
@@ -237,7 +333,6 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
 
                           // Cinsiyet
                           DropdownButtonFormField<String>(
-                            value: _selectedGender,
                             decoration: InputDecoration(
                               labelText: 'Cinsiyet *',
                               prefixIcon: const Icon(Icons.person_outline),
@@ -266,7 +361,6 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
 
                           // Ödeme Tipi
                           DropdownButtonFormField<String>(
-                            value: _selectedPaymentType,
                             decoration: InputDecoration(
                               labelText: 'Ödeme Tipi *',
                               prefixIcon: const Icon(Icons.payment_outlined),

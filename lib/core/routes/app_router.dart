@@ -12,6 +12,9 @@ import '../../features/application/presentation/pages/application_create_page.da
 import '../../features/application/presentation/bloc/application_cubit.dart';
 import '../../features/application/data/datasources/application_remote_data_source.dart';
 import '../../features/application/data/repositories/application_repository_impl.dart';
+import '../../features/product/presentation/bloc/product_cubit.dart';
+import '../../features/product/data/datasources/product_remote_data_source.dart';
+import '../../features/product/data/repositories/product_repository_impl.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/services/storage_service.dart';
 
@@ -56,12 +59,20 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) {
             final dioClient = DioClient();
+
             final applicationRemoteDataSource = ApplicationRemoteDataSourceImpl(dioClient);
             final applicationRepository = ApplicationRepositoryImpl(applicationRemoteDataSource);
             final applicationCubit = ApplicationCubit(applicationRepository);
 
-            return BlocProvider(
-              create: (_) => applicationCubit,
+            final productRemoteDataSource = ProductRemoteDataSourceImpl(dioClient);
+            final productRepository = ProductRepositoryImpl(productRemoteDataSource);
+            final productCubit = ProductCubit(productRepository);
+
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => applicationCubit),
+                BlocProvider(create: (_) => productCubit..fetchProducts()),
+              ],
               child: const ApplicationCreatePage(),
             );
           },

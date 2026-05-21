@@ -15,7 +15,7 @@ class ApplicationRemoteDataSourceImpl implements ApplicationRemoteDataSource {
   Future<void> createApplication(ApplicationSaveRequest request) async {
     try {
       final response = await _dioClient.client.post(
-        '/applications',
+        'http://10.0.2.2:8083/api/v1/applications',
         data: request.toJson(),
       );
 
