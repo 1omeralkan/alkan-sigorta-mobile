@@ -79,6 +79,31 @@ class HomePage extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 height: 50,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/applications');
+                  },
+                  icon: const Icon(Icons.assignment),
+                  label: const Text(
+                    'Başvurularım',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: BorderSide(color: AppColors.primary, width: 2),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSizes.md),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
                 child: ElevatedButton.icon(
                   onPressed: () {
                     Navigator.pushReplacementNamed(context, '/');

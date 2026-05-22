@@ -9,6 +9,7 @@ import '../../features/auth/data/datasources/parameter_remote_data_source.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/application/presentation/pages/application_create_page.dart';
+import '../../features/application/presentation/pages/applications_list_page.dart';
 import '../../features/application/presentation/bloc/application_cubit.dart';
 import '../../features/application/data/datasources/application_remote_data_source.dart';
 import '../../features/application/data/repositories/application_repository_impl.dart';
@@ -76,6 +77,10 @@ class AppRouter {
               child: const ApplicationCreatePage(),
             );
           },
+        );
+      case '/applications':
+        return MaterialPageRoute(
+          builder: (_) => const ApplicationsListPage(),
         );
       default:
         return MaterialPageRoute(
