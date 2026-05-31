@@ -460,27 +460,55 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                                   ),
                                 ),
 
-                                // Cancel button (only for pending applications)
-                                if (_canCancelApplication(application.status)) ...[
+                                // Action Buttons (only for non-cancelled applications)
+                                if (application.status.toUpperCase() != 'CANCELLED') ...[
                                   const SizedBox(height: 16),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: OutlinedButton.icon(
-                                      onPressed: () => _showCancelConfirmDialog(
-                                        application.id,
-                                        application.applicationNumber,
-                                      ),
-                                      icon: const Icon(Icons.cancel_outlined, size: 18),
-                                      label: const Text('Başvuruyu İptal Et'),
-                                      style: OutlinedButton.styleFrom(
-                                        foregroundColor: Colors.red.shade700,
-                                        side: BorderSide(color: Colors.red.shade300, width: 1.5),
-                                        padding: const EdgeInsets.symmetric(vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                  Row(
+                                    children: [
+                                      // Payments button
+                                      Expanded(
+                                        child: ElevatedButton.icon(
+                                          onPressed: () {
+                                            Navigator.pushNamed(
+                                              context,
+                                              '/collections',
+                                              arguments: application.id,
+                                            );
+                                          },
+                                          icon: const Icon(Icons.payment, size: 18),
+                                          label: const Text('Ödemeler'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: AppColors.primary,
+                                            foregroundColor: Colors.white,
+                                            padding: const EdgeInsets.symmetric(vertical: 12),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ),
+                                      if (_canCancelApplication(application.status)) ...[
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: OutlinedButton.icon(
+                                            onPressed: () => _showCancelConfirmDialog(
+                                              application.id,
+                                              application.applicationNumber,
+                                            ),
+                                            icon: const Icon(Icons.cancel_outlined, size: 18),
+                                            label: const Text('İptal Et'),
+                                            style: OutlinedButton.styleFrom(
+                                              foregroundColor: Colors.red.shade700,
+                                              side: BorderSide(color: Colors.red.shade300, width: 1.5),
+                                              padding: const EdgeInsets.symmetric(vertical: 12),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ],
                               ],

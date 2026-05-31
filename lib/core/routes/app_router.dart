@@ -13,6 +13,10 @@ import '../../features/application/presentation/pages/applications_list_page.dar
 import '../../features/application/presentation/bloc/application_cubit.dart';
 import '../../features/application/data/datasources/application_remote_data_source.dart';
 import '../../features/application/data/repositories/application_repository_impl.dart';
+import '../../features/collection/presentation/pages/collections_list_page.dart';
+import '../../features/collection/presentation/bloc/collection_cubit.dart';
+import '../../features/collection/data/datasources/collection_remote_data_source.dart';
+import '../../features/collection/data/repositories/collection_repository_impl.dart';
 import '../../features/product/presentation/bloc/product_cubit.dart';
 import '../../features/product/data/datasources/product_remote_data_source.dart';
 import '../../features/product/data/repositories/product_repository_impl.dart';
@@ -89,6 +93,21 @@ class AppRouter {
             return BlocProvider(
               create: (_) => applicationCubit,
               child: const ApplicationsListPage(),
+            );
+          },
+        );
+      case '/collections':
+        final applicationId = settings.arguments as int?;
+        return MaterialPageRoute(
+          builder: (_) {
+            final dioClient = DioClient();
+            final collectionRemoteDataSource = CollectionRemoteDataSourceImpl(dioClient);
+            final collectionRepository = CollectionRepositoryImpl(collectionRemoteDataSource);
+            final collectionCubit = CollectionCubit(collectionRepository);
+
+            return BlocProvider(
+              create: (_) => collectionCubit,
+              child: CollectionsListPage(applicationId: applicationId),
             );
           },
         );
