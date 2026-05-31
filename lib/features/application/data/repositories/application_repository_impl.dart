@@ -25,4 +25,13 @@ class ApplicationRepositoryImpl implements ApplicationRepository {
       rethrow;
     }
   }
+
+  @override
+  Future<void> cancelApplication(int applicationId) async {
+    try {
+      await _remoteDataSource.cancelApplication(applicationId);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

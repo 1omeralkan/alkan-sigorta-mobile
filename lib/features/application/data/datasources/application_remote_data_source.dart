@@ -6,6 +6,7 @@ import '../models/application_response.dart';
 abstract class ApplicationRemoteDataSource {
   Future<void> createApplication(ApplicationSaveRequest request);
   Future<List<ApplicationResponse>> getApplicationsByCustomerId(int customerId);
+  Future<void> cancelApplication(int applicationId);
 }
 
 class ApplicationRemoteDataSourceImpl implements ApplicationRemoteDataSource {
@@ -58,6 +59,37 @@ class ApplicationRemoteDataSourceImpl implements ApplicationRemoteDataSource {
     } on DioException catch (e) {
       if (e.response?.statusCode == 404) {
         return [];
+      } else if (e.response?.statusCode == 500) {
+        throw Exception('Sunucu hatası oluştu');
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Bağlantı zaman aşımına uğradı');
+      } else if (e.type == DioExceptionType.connectionError) {
+        throw Exception('İnternet bağlantınızı kontrol edin');
+      }
+      throw Exception('Bir hata oluştu: ${e.message}');
+    } catch (e) {
+      throw Exception('Beklenmeyen bir hata oluştu');
+    }
+  }
+
+  @override
+  Future<void> cancelApplication(int applicationId) async {
+    try {
+      final response = await _dioClient.client.patch(
+        'http://10.0.2.2:8083/api/v1/applications/$applicationId/status',
+        queryParameters: {'status': 'CANCELLED'},
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('Başvuru iptal işlemi başarısız oldu');
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 400) {
+        final errorMessage = e.response?.data['message'] ?? 'Geçersiz işlem';
+        throw Exception(errorMessage);
+      } else if (e.response?.statusCode == 404) {
+        throw Exception('Başvuru bulunamadı');
       } else if (e.response?.statusCode == 500) {
         throw Exception('Sunucu hatası oluştu');
       } else if (e.type == DioExceptionType.connectionTimeout ||
