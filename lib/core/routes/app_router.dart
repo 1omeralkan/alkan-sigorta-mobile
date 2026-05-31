@@ -80,7 +80,17 @@ class AppRouter {
         );
       case '/applications':
         return MaterialPageRoute(
-          builder: (_) => const ApplicationsListPage(),
+          builder: (_) {
+            final dioClient = DioClient();
+            final applicationRemoteDataSource = ApplicationRemoteDataSourceImpl(dioClient);
+            final applicationRepository = ApplicationRepositoryImpl(applicationRemoteDataSource);
+            final applicationCubit = ApplicationCubit(applicationRepository);
+
+            return BlocProvider(
+              create: (_) => applicationCubit,
+              child: const ApplicationsListPage(),
+            );
+          },
         );
       default:
         return MaterialPageRoute(

@@ -1,6 +1,7 @@
 import '../../domain/repositories/application_repository.dart';
 import '../datasources/application_remote_data_source.dart';
 import '../models/application_save_request.dart';
+import '../models/application_response.dart';
 
 class ApplicationRepositoryImpl implements ApplicationRepository {
   final ApplicationRemoteDataSource _remoteDataSource;
@@ -11,6 +12,15 @@ class ApplicationRepositoryImpl implements ApplicationRepository {
   Future<void> createApplication(ApplicationSaveRequest request) async {
     try {
       await _remoteDataSource.createApplication(request);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  @override
+  Future<List<ApplicationResponse>> getApplicationsByCustomerId(int customerId) async {
+    try {
+      return await _remoteDataSource.getApplicationsByCustomerId(customerId);
     } catch (e) {
       rethrow;
     }

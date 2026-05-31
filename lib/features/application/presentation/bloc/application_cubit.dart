@@ -18,4 +18,15 @@ class ApplicationCubit extends Cubit<ApplicationState> {
       emit(ApplicationFailure(e.toString().replaceFirst('Exception: ', '')));
     }
   }
+
+  Future<void> loadApplications(int customerId) async {
+    emit(ApplicationListLoading());
+
+    try {
+      final applications = await _repository.getApplicationsByCustomerId(customerId);
+      emit(ApplicationListLoaded(applications));
+    } catch (e) {
+      emit(ApplicationListFailure(e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
 }

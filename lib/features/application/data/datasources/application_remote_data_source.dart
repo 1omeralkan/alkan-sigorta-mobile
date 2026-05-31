@@ -1,9 +1,11 @@
 import 'package:dio/dio.dart';
 import '../../../../core/network/dio_client.dart';
 import '../models/application_save_request.dart';
+import '../models/application_response.dart';
 
 abstract class ApplicationRemoteDataSource {
   Future<void> createApplication(ApplicationSaveRequest request);
+  Future<List<ApplicationResponse>> getApplicationsByCustomerId(int customerId);
 }
 
 class ApplicationRemoteDataSourceImpl implements ApplicationRemoteDataSource {
@@ -26,6 +28,36 @@ class ApplicationRemoteDataSourceImpl implements ApplicationRemoteDataSource {
       if (e.response?.statusCode == 400) {
         final errorMessage = e.response?.data['message'] ?? 'Geçersiz başvuru bilgileri';
         throw Exception(errorMessage);
+      } else if (e.response?.statusCode == 500) {
+        throw Exception('Sunucu hatası oluştu');
+      } else if (e.type == DioExceptionType.connectionTimeout ||
+          e.type == DioExceptionType.receiveTimeout) {
+        throw Exception('Bağlantı zaman aşımına uğradı');
+      } else if (e.type == DioExceptionType.connectionError) {
+        throw Exception('İnternet bağlantınızı kontrol edin');
+      }
+      throw Exception('Bir hata oluştu: ${e.message}');
+    } catch (e) {
+      throw Exception('Beklenmeyen bir hata oluştu');
+    }
+  }
+
+  @override
+  Future<List<ApplicationResponse>> getApplicationsByCustomerId(int customerId) async {
+    try {
+      final response = await _dioClient.client.get(
+        'http://10.0.2.2:8083/api/v1/applications/customer/$customerId',
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = response.data as List<dynamic>;
+        return data.map((json) => ApplicationResponse.fromJson(json as Map<String, dynamic>)).toList();
+      } else {
+        throw Exception('Başvurular yüklenemedi');
+      }
+    } on DioException catch (e) {
+      if (e.response?.statusCode == 404) {
+        return [];
       } else if (e.response?.statusCode == 500) {
         throw Exception('Sunucu hatası oluştu');
       } else if (e.type == DioExceptionType.connectionTimeout ||
