@@ -18,6 +18,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       await storageService.saveToken(response.token);
       await storageService.saveCustomerId(response.customerId);
+      await storageService.saveCustomerName('${response.ad} ${response.soyad}');
 
       emit(const AuthSuccess());
     } catch (e) {

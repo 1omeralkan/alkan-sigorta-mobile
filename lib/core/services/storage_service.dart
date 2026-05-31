@@ -15,6 +15,7 @@ class StorageService {
 
   static const String _tokenKey = 'auth_token';
   static const String _customerIdKey = 'customer_id';
+  static const String _customerNameKey = 'customer_name';
 
   Future<void> saveToken(String token) async {
     try {
@@ -67,6 +68,30 @@ class StorageService {
       await _secureStorage.delete(key: _customerIdKey);
     } catch (e) {
       throw Exception('Customer ID silinemedi: $e');
+    }
+  }
+
+  Future<void> saveCustomerName(String name) async {
+    try {
+      await _secureStorage.write(key: _customerNameKey, value: name);
+    } catch (e) {
+      throw Exception('Customer name kaydedilemedi: $e');
+    }
+  }
+
+  Future<String?> getCustomerName() async {
+    try {
+      return await _secureStorage.read(key: _customerNameKey);
+    } catch (e) {
+      throw Exception('Customer name okunamadı: $e');
+    }
+  }
+
+  Future<void> deleteCustomerName() async {
+    try {
+      await _secureStorage.delete(key: _customerNameKey);
+    } catch (e) {
+      throw Exception('Customer name silinemedi: $e');
     }
   }
 }
