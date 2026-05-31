@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quickalert/quickalert.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/services/storage_service.dart';
@@ -68,61 +69,34 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
   }
 
   Future<void> _showCancelConfirmDialog(int applicationId, String applicationNumber) async {
-    final confirmed = await showDialog<bool>(
+    QuickAlert.show(
       context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Row(
-          children: [
-            Icon(Icons.warning_amber_rounded, color: Colors.orange, size: 28),
-            SizedBox(width: 12),
-            Text('Başvuru İptali'),
-          ],
-        ),
-        content: Text(
-          'Başvuru No: $applicationNumber\n\nBu başvuruyu iptal etmek istediğinize emin misiniz?',
-          style: const TextStyle(fontSize: 15),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Vazgeç', style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            child: const Text('İptal Et'),
-          ),
-        ],
-      ),
-    );
+      type: QuickAlertType.confirm,
+      title: 'Başvuru İptali',
+      text: 'Başvuru No: $applicationNumber\n\nBu başvuruyu iptal etmek istediğinize emin misiniz?',
+      confirmBtnText: 'İptal Et',
+      cancelBtnText: 'Vazgeç',
+      confirmBtnColor: Colors.red,
+      onConfirmBtnTap: () async {
+        Navigator.pop(context);
 
-    if (confirmed == true && mounted) {
-      final customerId = await _storageService.getCustomerId();
-      if (customerId != null && mounted) {
-        context.read<ApplicationCubit>().cancelApplication(applicationId, customerId);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.white),
-                  SizedBox(width: 12),
-                  Text('Başvuru iptal edildi'),
-                ],
-              ),
-              backgroundColor: Colors.green,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          );
+        final customerId = await _storageService.getCustomerId();
+        if (customerId != null && mounted) {
+          context.read<ApplicationCubit>().cancelApplication(applicationId, customerId);
+
+          if (mounted) {
+            QuickAlert.show(
+              context: context,
+              type: QuickAlertType.success,
+              title: 'Başarılı',
+              text: 'Başvuru başarıyla iptal edildi',
+              autoCloseDuration: const Duration(seconds: 2),
+              showConfirmBtn: false,
+            );
+          }
         }
-      }
-    }
+      },
+    );
   }
 
   @override

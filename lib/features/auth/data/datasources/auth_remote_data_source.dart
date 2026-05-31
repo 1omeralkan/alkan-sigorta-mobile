@@ -34,13 +34,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception('Email veya şifre hatalı');
       } else if (e.response?.statusCode == 400) {
         throw Exception('Geçersiz istek');
+      } else if (e.response?.statusCode == 500) {
+        throw Exception('Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin');
       } else if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout) {
         throw Exception('Bağlantı zaman aşımına uğradı');
       } else if (e.type == DioExceptionType.connectionError) {
         throw Exception('İnternet bağlantınızı kontrol edin');
       }
-      throw Exception('Bir hata oluştu: ${e.message}');
+      throw Exception('Bir hata oluştu. Lütfen tekrar deneyin');
     } catch (e) {
       throw Exception('Beklenmeyen bir hata oluştu');
     }
@@ -63,13 +65,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception(errorMessage);
       } else if (e.response?.statusCode == 409) {
         throw Exception('Bu email veya TC No ile kayıtlı kullanıcı mevcut');
+      } else if (e.response?.statusCode == 500) {
+        throw Exception('Sunucu hatası oluştu. Lütfen daha sonra tekrar deneyin');
       } else if (e.type == DioExceptionType.connectionTimeout ||
           e.type == DioExceptionType.receiveTimeout) {
         throw Exception('Bağlantı zaman aşımına uğradı');
       } else if (e.type == DioExceptionType.connectionError) {
         throw Exception('İnternet bağlantınızı kontrol edin');
       }
-      throw Exception('Bir hata oluştu: ${e.message}');
+      throw Exception('Bir hata oluştu. Lütfen tekrar deneyin');
     } catch (e) {
       throw Exception('Beklenmeyen bir hata oluştu');
     }

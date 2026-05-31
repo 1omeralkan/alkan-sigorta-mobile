@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quickalert/quickalert.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/services/storage_service.dart';
@@ -44,31 +45,37 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedProductId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lütfen ürün seçiniz'),
-          backgroundColor: AppColors.error,
-        ),
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        title: 'Eksik Bilgi',
+        text: 'Lütfen ürün seçiniz',
+        confirmBtnText: 'Tamam',
+        confirmBtnColor: Colors.orange,
       );
       return;
     }
 
     if (_selectedGender == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lütfen cinsiyet seçiniz'),
-          backgroundColor: AppColors.error,
-        ),
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        title: 'Eksik Bilgi',
+        text: 'Lütfen cinsiyet seçiniz',
+        confirmBtnText: 'Tamam',
+        confirmBtnColor: Colors.orange,
       );
       return;
     }
 
     if (_selectedPaymentType == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lütfen ödeme tipi seçiniz'),
-          backgroundColor: AppColors.error,
-        ),
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        title: 'Eksik Bilgi',
+        text: 'Lütfen ödeme tipi seçiniz',
+        confirmBtnText: 'Tamam',
+        confirmBtnColor: Colors.orange,
       );
       return;
     }
@@ -80,11 +87,13 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
     if (!mounted) return;
 
     if (customerId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.'),
-          backgroundColor: AppColors.error,
-        ),
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.error,
+        title: 'Oturum Hatası',
+        text: 'Oturum bilgisi bulunamadı. Lütfen tekrar giriş yapın.',
+        confirmBtnText: 'Tamam',
+        confirmBtnColor: AppColors.error,
       );
       return;
     }
@@ -117,20 +126,30 @@ class _ApplicationCreatePageState extends State<ApplicationCreatePage> {
     return BlocConsumer<ApplicationCubit, ApplicationState>(
       listener: (context, state) {
         if (state is ApplicationFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-            ),
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.error,
+            title: 'Başvuru Başarısız',
+            text: state.message,
+            confirmBtnText: 'Tamam',
+            confirmBtnColor: AppColors.error,
+            barrierDismissible: true,
           );
         } else if (state is ApplicationSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Başvuru başarıyla oluşturuldu'),
-              backgroundColor: AppColors.success,
-            ),
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.success,
+            title: 'Başarılı!',
+            text: 'Başvurunuz başarıyla oluşturuldu',
+            autoCloseDuration: const Duration(seconds: 2),
+            showConfirmBtn: false,
           );
-          Navigator.pop(context);
+
+          Future.delayed(const Duration(milliseconds: 2100), () {
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+          });
         }
       },
       builder: (context, state) {

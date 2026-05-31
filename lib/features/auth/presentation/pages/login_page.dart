@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quickalert/quickalert.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../bloc/auth_cubit.dart';
@@ -52,14 +53,30 @@ class _LoginPageState extends State<LoginPage> {
     return BlocConsumer<AuthCubit, AuthState>(
       listener: (context, state) {
         if (state is AuthFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-            ),
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.error,
+            title: 'Giriş Başarısız',
+            text: state.message,
+            confirmBtnText: 'Tamam',
+            confirmBtnColor: AppColors.error,
+            barrierDismissible: true,
           );
         } else if (state is AuthSuccess) {
-          Navigator.pushReplacementNamed(context, '/home');
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.success,
+            title: 'Başarılı!',
+            text: 'Giriş başarılı. Yönlendiriliyorsunuz...',
+            autoCloseDuration: const Duration(seconds: 1),
+            showConfirmBtn: false,
+          );
+
+          Future.delayed(const Duration(milliseconds: 1100), () {
+            if (context.mounted) {
+              Navigator.pushReplacementNamed(context, '/home');
+            }
+          });
         }
       },
       builder: (context, state) {

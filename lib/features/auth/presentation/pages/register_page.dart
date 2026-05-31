@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:quickalert/quickalert.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../data/models/customer_save_request.dart';
@@ -88,11 +89,13 @@ class _RegisterPageState extends State<RegisterPage> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_selectedDate == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Lütfen doğum tarihinizi seçiniz'),
-          backgroundColor: AppColors.error,
-        ),
+      QuickAlert.show(
+        context: context,
+        type: QuickAlertType.warning,
+        title: 'Eksik Bilgi',
+        text: 'Lütfen doğum tarihinizi seçiniz',
+        confirmBtnText: 'Tamam',
+        confirmBtnColor: Colors.orange,
       );
       return;
     }
@@ -126,20 +129,30 @@ class _RegisterPageState extends State<RegisterPage> {
     return BlocConsumer<RegisterCubit, RegisterState>(
       listener: (context, state) {
         if (state is RegisterFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: AppColors.error,
-            ),
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.error,
+            title: 'Kayıt Başarısız',
+            text: state.message,
+            confirmBtnText: 'Tamam',
+            confirmBtnColor: AppColors.error,
+            barrierDismissible: true,
           );
         } else if (state is RegisterSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Kayıt başarılı! Giriş yapabilirsiniz.'),
-              backgroundColor: AppColors.success,
-            ),
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.success,
+            title: 'Kayıt Başarılı!',
+            text: 'Hesabınız oluşturuldu. Giriş sayfasına yönlendiriliyorsunuz...',
+            autoCloseDuration: const Duration(seconds: 2),
+            showConfirmBtn: false,
           );
-          Navigator.pushReplacementNamed(context, '/home');
+
+          Future.delayed(const Duration(milliseconds: 2100), () {
+            if (context.mounted) {
+              Navigator.pushReplacementNamed(context, '/');
+            }
+          });
         }
       },
       builder: (context, state) {
