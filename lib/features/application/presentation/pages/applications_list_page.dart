@@ -171,98 +171,257 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                 itemCount: state.applications.length,
                 itemBuilder: (context, index) {
                   final application = state.applications[index];
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: AppSizes.md),
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: AppSizes.lg),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Colors.white,
+                          Colors.grey.shade50,
+                        ],
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: _getStatusColor(application.status).withOpacity(0.1),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                          spreadRadius: 0,
+                        ),
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.05),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                          spreadRadius: -4,
+                        ),
+                      ],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(AppSizes.md),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Stack(
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  application.productName,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.textPrimary,
-                                  ),
+                          // Gradient accent on the left
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            child: Container(
+                              width: 6,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    _getStatusColor(application.status),
+                                    _getStatusColor(application.status).withOpacity(0.6),
+                                  ],
                                 ),
                               ),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Header with product name and status
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // Product icon
+                                    Container(
+                                      padding: const EdgeInsets.all(12),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            AppColors.primary,
+                                            AppColors.primary.withOpacity(0.8),
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.primary.withOpacity(0.3),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.shield_outlined,
+                                        color: Colors.white,
+                                        size: 28,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            application.productName,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: AppColors.textPrimary,
+                                              letterSpacing: 0.3,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            'No: ${application.applicationNumber}',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: AppColors.textSecondary.withOpacity(0.8),
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            _getStatusColor(application.status).withOpacity(0.15),
+                                            _getStatusColor(application.status).withOpacity(0.08),
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: _getStatusColor(application.status).withOpacity(0.3),
+                                          width: 1.5,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        _getStatusText(application.status),
+                                        style: TextStyle(
+                                          color: _getStatusColor(application.status),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(application.status).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: _getStatusColor(application.status),
-                                    width: 1.5,
+                                const SizedBox(height: 20),
+
+                                // Amount highlight
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        AppColors.primary.withOpacity(0.08),
+                                        AppColors.primary.withOpacity(0.03),
+                                      ],
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                    border: Border.all(
+                                      color: AppColors.primary.withOpacity(0.1),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: AppColors.primary.withOpacity(0.1),
+                                              borderRadius: BorderRadius.circular(10),
+                                            ),
+                                            child: const Icon(
+                                              Icons.account_balance_wallet_outlined,
+                                              color: AppColors.primary,
+                                              size: 20,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 12),
+                                          const Text(
+                                            'Toplam Tutar',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              color: AppColors.textSecondary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        '${application.amount.toStringAsFixed(2)} ₺',
+                                        style: const TextStyle(
+                                          fontSize: 20,
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                child: Text(
-                                  _getStatusText(application.status),
-                                  style: TextStyle(
-                                    color: _getStatusColor(application.status),
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 12,
+
+                                const SizedBox(height: 16),
+
+                                // Details section
+                                Container(
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey.shade50,
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      _buildModernInfoRow(
+                                        Icons.calendar_today_outlined,
+                                        'Başvuru Tarihi',
+                                        _formatDate(application.applicationDate),
+                                      ),
+                                      if (application.paymentTypeName != null) ...[
+                                        const SizedBox(height: 12),
+                                        _buildModernInfoRow(
+                                          Icons.payment_outlined,
+                                          'Ödeme Tipi',
+                                          application.paymentTypeName!,
+                                        ),
+                                      ],
+                                      if (application.installmentCount != null) ...[
+                                        const SizedBox(height: 12),
+                                        _buildModernInfoRow(
+                                          Icons.format_list_numbered_outlined,
+                                          'Taksit',
+                                          '${application.installmentCount} Ay',
+                                        ),
+                                      ],
+                                      if (application.installmentAmount != null) ...[
+                                        const SizedBox(height: 12),
+                                        _buildModernInfoRow(
+                                          Icons.monetization_on_outlined,
+                                          'Aylık Ödeme',
+                                          '${application.installmentAmount!.toStringAsFixed(2)} ₺',
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: AppSizes.sm),
-                          const Divider(),
-                          const SizedBox(height: AppSizes.sm),
-                          _buildInfoRow(
-                            Icons.confirmation_number,
-                            'Başvuru No',
-                            application.applicationNumber,
-                          ),
-                          const SizedBox(height: AppSizes.xs),
-                          _buildInfoRow(
-                            Icons.attach_money,
-                            'Tutar',
-                            '${application.amount.toStringAsFixed(2)} TL',
-                          ),
-                          const SizedBox(height: AppSizes.xs),
-                          _buildInfoRow(
-                            Icons.date_range,
-                            'Başvuru Tarihi',
-                            _formatDate(application.applicationDate),
-                          ),
-                          if (application.paymentTypeName != null) ...[
-                            const SizedBox(height: AppSizes.xs),
-                            _buildInfoRow(
-                              Icons.payment,
-                              'Ödeme Tipi',
-                              application.paymentTypeName!,
+                              ],
                             ),
-                          ],
-                          if (application.installmentCount != null) ...[
-                            const SizedBox(height: AppSizes.xs),
-                            _buildInfoRow(
-                              Icons.format_list_numbered,
-                              'Taksit Sayısı',
-                              '${application.installmentCount} Ay',
-                            ),
-                          ],
-                          if (application.installmentAmount != null) ...[
-                            const SizedBox(height: AppSizes.xs),
-                            _buildInfoRow(
-                              Icons.money,
-                              'Taksit Tutarı',
-                              '${application.installmentAmount!.toStringAsFixed(2)} TL',
-                            ),
-                          ],
+                          ),
                         ],
                       ),
                     ),
@@ -326,6 +485,57 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
               color: AppColors.textPrimary,
               fontWeight: FontWeight.w600,
             ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildModernInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.03),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: AppColors.textSecondary.withOpacity(0.8),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: AppColors.textPrimary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ],
