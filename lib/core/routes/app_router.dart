@@ -101,12 +101,20 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) {
             final dioClient = DioClient();
+
             final collectionRemoteDataSource = CollectionRemoteDataSourceImpl(dioClient);
             final collectionRepository = CollectionRepositoryImpl(collectionRemoteDataSource);
             final collectionCubit = CollectionCubit(collectionRepository);
 
-            return BlocProvider(
-              create: (_) => collectionCubit,
+            final applicationRemoteDataSource = ApplicationRemoteDataSourceImpl(dioClient);
+            final applicationRepository = ApplicationRepositoryImpl(applicationRemoteDataSource);
+            final applicationCubit = ApplicationCubit(applicationRepository);
+
+            return MultiBlocProvider(
+              providers: [
+                BlocProvider(create: (_) => collectionCubit),
+                BlocProvider(create: (_) => applicationCubit),
+              ],
               child: CollectionsListPage(applicationId: applicationId),
             );
           },

@@ -32,6 +32,8 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
 
   String _getStatusText(String status) {
     switch (status.toUpperCase()) {
+      case 'AWAITING_PAYMENT':
+        return 'Ödeme Bekleniyor';
       case 'PENDING':
         return 'Beklemede';
       case 'APPROVED':
@@ -49,6 +51,8 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
 
   Color _getStatusColor(String status) {
     switch (status.toUpperCase()) {
+      case 'AWAITING_PAYMENT':
+        return Colors.amber;
       case 'PENDING':
         return Colors.orange;
       case 'APPROVED':
@@ -65,7 +69,7 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
   }
 
   bool _canCancelApplication(String status) {
-    return status.toUpperCase() == 'PENDING';
+    return status.toUpperCase() == 'AWAITING_PAYMENT' || status.toUpperCase() == 'PENDING';
   }
 
   Future<void> _showCancelConfirmDialog(int applicationId, String applicationNumber) async {

@@ -33,219 +33,224 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          // Modern Gradient Header
-          SliverAppBar(
-            expandedHeight: 180,
-            floating: false,
-            pinned: true,
-            backgroundColor: AppColors.primary,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      AppColors.primary,
-                      AppColors.primary.withOpacity(0.8),
-                    ],
-                  ),
+      body: Column(
+        children: [
+          // Sabit Header - Design System'e uygun
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.primary,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadow,
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
                 ),
-                child: SafeArea(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSizes.lg),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.person,
-                                color: Colors.white,
-                                size: 28,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Hoş Geldiniz',
-                                    style: TextStyle(
-                                      color: Colors.white70,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  Text(
-                                    _userName,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            IconButton(
-                              onPressed: () {
-                                _showLogoutDialog(context);
-                              },
-                              icon: const Icon(
-                                Icons.logout,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+              ],
+            ),
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSizes.md,
+                  vertical: AppSizes.md,
+                ),
+                child: Row(
+                  children: [
+                    // User Avatar
+                    Container(
+                      padding: const EdgeInsets.all(AppSizes.sm),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                      ),
+                      child: Icon(
+                        Icons.person_outline,
+                        color: AppColors.textOnPrimary,
+                        size: AppSizes.iconMedium,
+                      ),
                     ),
-                  ),
+                    const SizedBox(width: AppSizes.md),
+                    // User Info
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Hoş Geldiniz',
+                            style: TextStyle(
+                              color: AppColors.textOnPrimary.withOpacity(0.8),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            _userName,
+                            style: const TextStyle(
+                              color: AppColors.textOnPrimary,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Logout Button
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: () => _showLogoutDialog(context),
+                        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                        child: Container(
+                          padding: const EdgeInsets.all(AppSizes.sm),
+                          decoration: BoxDecoration(
+                            color: AppColors.primaryLight,
+                            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+                          ),
+                          child: Icon(
+                            Icons.logout,
+                            color: AppColors.textOnPrimary,
+                            size: AppSizes.iconMedium,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
           ),
 
-          // Ana İçerik
-          SliverToBoxAdapter(
-            child: Padding(
+          // Kaydırılabilir İçerik
+          Expanded(
+            child: ListView(
               padding: const EdgeInsets.all(AppSizes.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Özellik Kartları Grid
-                  const Text(
-                    'Hızlı İşlemler',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
+              children: [
+
+                // Özellik Kartları Grid
+                const Text(
+                  'Hızlı İşlemler',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: AppSizes.lg),
+                GridView.count(
+                  crossAxisCount: 2,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  mainAxisSpacing: AppSizes.md,
+                  crossAxisSpacing: AppSizes.md,
+                  childAspectRatio: 1.1,
+                  children: [
+                    _buildFeatureCard(
+                      context,
+                      icon: Icons.add_circle_outline,
+                      title: 'Yeni Başvuru',
+                      subtitle: 'Başvuru Oluştur',
+                      color: Colors.blue,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/application-create');
+                      },
+                    ),
+                    _buildFeatureCard(
+                      context,
+                      icon: Icons.assignment_outlined,
+                      title: 'Başvurularım',
+                      subtitle: 'Tüm Başvurular',
+                      color: Colors.orange,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/applications');
+                      },
+                    ),
+                    _buildFeatureCard(
+                      context,
+                      icon: Icons.payment_outlined,
+                      title: 'Ödemelerim',
+                      subtitle: 'Tahsilat İşlemleri',
+                      color: Colors.green,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/collections');
+                      },
+                    ),
+                    _buildFeatureCard(
+                      context,
+                      icon: Icons.info_outline,
+                      title: 'Yardım',
+                      subtitle: 'Destek & Bilgi',
+                      color: Colors.purple,
+                      onTap: () {
+                        _showInfoDialog(context);
+                      },
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: AppSizes.xl),
+
+                // Bilgilendirme Kartı
+                Container(
+                  padding: const EdgeInsets.all(AppSizes.lg),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.primary.withOpacity(0.1),
+                        AppColors.primary.withOpacity(0.05),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.3),
                     ),
                   ),
-                  const SizedBox(height: AppSizes.lg),
-                  GridView.count(
-                    crossAxisCount: 2,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    mainAxisSpacing: AppSizes.md,
-                    crossAxisSpacing: AppSizes.md,
-                    childAspectRatio: 1.1,
+                  child: Row(
                     children: [
-                      _buildFeatureCard(
-                        context,
-                        icon: Icons.add_circle_outline,
-                        title: 'Yeni Başvuru',
-                        subtitle: 'Başvuru Oluştur',
-                        color: Colors.blue,
-                        onTap: () {
-                          Navigator.pushNamed(context, '/application-create');
-                        },
+                      Container(
+                        padding: const EdgeInsets.all(AppSizes.sm),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                        ),
+                        child: Icon(
+                          Icons.verified_user,
+                          color: AppColors.primary,
+                          size: AppSizes.iconLarge,
+                        ),
                       ),
-                      _buildFeatureCard(
-                        context,
-                        icon: Icons.assignment_outlined,
-                        title: 'Başvurularım',
-                        subtitle: 'Tüm Başvurular',
-                        color: Colors.orange,
-                        onTap: () {
-                          Navigator.pushNamed(context, '/applications');
-                        },
-                      ),
-                      _buildFeatureCard(
-                        context,
-                        icon: Icons.payment_outlined,
-                        title: 'Ödemelerim',
-                        subtitle: 'Tahsilat İşlemleri',
-                        color: Colors.green,
-                        onTap: () {
-                          Navigator.pushNamed(context, '/collections');
-                        },
-                      ),
-                      _buildFeatureCard(
-                        context,
-                        icon: Icons.info_outline,
-                        title: 'Yardım',
-                        subtitle: 'Destek & Bilgi',
-                        color: Colors.purple,
-                        onTap: () {
-                          _showInfoDialog(context);
-                        },
+                      const SizedBox(width: AppSizes.md),
+                      const Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Alkan Sigorta',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AppColors.textPrimary,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'Güvenli ve hızlı sigorta işlemleri',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
-
-                  const SizedBox(height: AppSizes.xl),
-
-                  // Bilgilendirme Kartı
-                  Container(
-                    padding: const EdgeInsets.all(AppSizes.lg),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.primary.withOpacity(0.1),
-                          AppColors.primary.withOpacity(0.05),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.3),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Icon(
-                            Icons.verified_user,
-                            color: AppColors.primary,
-                            size: 32,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Alkan Sigorta',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: AppColors.textPrimary,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Güvenli ve hızlı sigorta işlemleri',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
@@ -321,20 +326,39 @@ class _HomePageState extends State<HomePage> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
         ),
-        title: const Row(
-          children: [
-            Icon(Icons.logout, color: Colors.red),
-            SizedBox(width: 12),
-            Text('Çıkış Yap'),
-          ],
+        title: const Text(
+          'Çıkış Yap',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
         ),
-        content: const Text('Hesabınızdan çıkmak istediğinize emin misiniz?'),
+        content: const Text(
+          'Hesabınızdan çıkmak istediğinize emin misiniz?',
+          style: TextStyle(
+            fontSize: 14,
+            color: AppColors.textSecondary,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('İptal'),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.lg,
+                vertical: AppSizes.sm,
+              ),
+            ),
+            child: const Text(
+              'İptal',
+              style: TextStyle(
+                color: AppColors.textSecondary,
+                fontSize: 14,
+              ),
+            ),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -347,10 +371,21 @@ class _HomePageState extends State<HomePage> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+              backgroundColor: AppColors.error,
+              foregroundColor: AppColors.textOnPrimary,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSizes.lg,
+                vertical: AppSizes.sm,
+              ),
+              elevation: AppSizes.cardElevation,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
+              ),
             ),
-            child: const Text('Çıkış Yap'),
+            child: const Text(
+              'Çıkış Yap',
+              style: TextStyle(fontSize: 14),
+            ),
           ),
         ],
       ),
