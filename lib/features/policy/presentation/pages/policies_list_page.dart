@@ -401,13 +401,23 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
                                             ),
                                           ),
                                           const SizedBox(height: 2),
-                                          Text(
-                                            'Ürün ID: ${policy.productId}',
-                                            style: TextStyle(
-                                              fontSize: 12,
-                                              color: AppColors.textSecondary.withValues(alpha: 0.6),
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.inventory_2_outlined,
+                                                size: 12,
+                                                color: AppColors.primary.withValues(alpha: 0.7),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                context.read<PolicyCubit>().getProductName(policy.productId),
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: AppColors.primary.withValues(alpha: 0.8),
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
                                           ),
                                         ],
                                       ),

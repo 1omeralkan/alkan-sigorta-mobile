@@ -127,9 +127,14 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) {
             final dioClient = DioClient();
+
             final policyRemoteDataSource = PolicyRemoteDataSourceImpl(dioClient);
             final policyRepository = PolicyRepositoryImpl(policyRemoteDataSource);
-            final policyCubit = PolicyCubit(policyRepository);
+
+            final productRemoteDataSource = ProductRemoteDataSourceImpl(dioClient);
+            final productRepository = ProductRepositoryImpl(productRemoteDataSource);
+
+            final policyCubit = PolicyCubit(policyRepository, productRepository);
 
             return BlocProvider(
               create: (_) => policyCubit,
