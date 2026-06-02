@@ -173,9 +173,124 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
               color: AppColors.primary,
               child: ListView.builder(
                 padding: const EdgeInsets.all(AppSizes.md),
-                itemCount: state.policies.length,
+                itemCount: state.policies.length + 1, // +1 for summary card
                 itemBuilder: (context, index) {
-                  final policy = state.policies[index];
+                  // Summary Card at the top
+                  if (index == 0) {
+                    final activePolicies = state.policies.where((p) => p.policyStatus == 'ACTIVE').length;
+                    final totalPremium = state.policies.fold(0.0, (sum, p) => sum + p.amount);
+                    final totalCoverage = state.policies.fold(0.0, (sum, p) => sum + _getTotalCoverageAmount(p.coverages));
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: AppSizes.lg),
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.primary,
+                            AppColors.primary.withValues(alpha: 0.85),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                            spreadRadius: -2,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(
+                                  Icons.assessment,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              const Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Poliçe Özeti',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2),
+                                  Text(
+                                    'Genel Bakış',
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.white70,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildSummaryCard(
+                                  'Toplam Poliçe',
+                                  '${state.policies.length}',
+                                  Icons.shield,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildSummaryCard(
+                                  'Aktif',
+                                  '$activePolicies',
+                                  Icons.check_circle,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: _buildSummaryCard(
+                                  'Yıllık Prim',
+                                  '${totalPremium.toStringAsFixed(0)} ₺',
+                                  Icons.account_balance_wallet,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: _buildSummaryCard(
+                                  'Toplam Teminat',
+                                  '${(totalCoverage / 1000).toStringAsFixed(0)}K ₺',
+                                  Icons.security,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  // Policy cards
+                  final policy = state.policies[index - 1];
                   return Container(
                     margin: const EdgeInsets.only(bottom: AppSizes.lg),
                     decoration: BoxDecoration(
@@ -268,9 +383,9 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
                                           const Text(
-                                            'Poliçe',
+                                            'Poliçe Bilgileri',
                                             style: TextStyle(
-                                              fontSize: 18,
+                                              fontSize: 16,
                                               fontWeight: FontWeight.bold,
                                               color: AppColors.textPrimary,
                                               letterSpacing: 0.3,
@@ -278,10 +393,19 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'No: ${policy.id}',
+                                            'Poliçe No: ${policy.id}',
                                             style: TextStyle(
                                               fontSize: 13,
                                               color: AppColors.textSecondary.withValues(alpha: 0.8),
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            'Ürün ID: ${policy.productId}',
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: AppColors.textSecondary.withValues(alpha: 0.6),
                                               fontWeight: FontWeight.w500,
                                             ),
                                           ),
@@ -333,63 +457,138 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
                                 ),
                                 const SizedBox(height: 20),
 
-                                // Amount highlight
-                                Container(
-                                  padding: const EdgeInsets.all(16),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        AppColors.primary.withValues(alpha: 0.08),
-                                        AppColors.primary.withValues(alpha: 0.03),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(16),
-                                    border: Border.all(
-                                      color: AppColors.primary.withValues(alpha: 0.1),
-                                      width: 1,
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(8),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.primary.withValues(alpha: 0.1),
-                                              borderRadius: BorderRadius.circular(10),
-                                            ),
-                                            child: const Icon(
-                                              Icons.account_balance_wallet_outlined,
-                                              color: AppColors.primary,
-                                              size: 20,
-                                            ),
+                                // Financial Info Cards Row
+                                Row(
+                                  children: [
+                                    // Premium Amount Card
+                                    Expanded(
+                                      child: Container(
+                                        padding: const EdgeInsets.all(14),
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              AppColors.primary.withValues(alpha: 0.08),
+                                              AppColors.primary.withValues(alpha: 0.03),
+                                            ],
                                           ),
-                                          const SizedBox(width: 12),
-                                          const Text(
-                                            'Prim Tutarı',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              color: AppColors.textSecondary,
-                                              fontWeight: FontWeight.w500,
-                                            ),
+                                          borderRadius: BorderRadius.circular(14),
+                                          border: Border.all(
+                                            color: AppColors.primary.withValues(alpha: 0.15),
+                                            width: 1,
                                           ),
-                                        ],
-                                      ),
-                                      Text(
-                                        policy.formattedAmount,
-                                        style: const TextStyle(
-                                          fontSize: 20,
-                                          color: AppColors.primary,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 0.5,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(6),
+                                                  decoration: BoxDecoration(
+                                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.account_balance_wallet_outlined,
+                                                    color: AppColors.primary,
+                                                    size: 16,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                const Text(
+                                                  'Yıllık Prim',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: AppColors.textSecondary,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              policy.formattedAmount,
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                color: AppColors.primary,
+                                                fontWeight: FontWeight.bold,
+                                                letterSpacing: 0.3,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                    ],
-                                  ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    // Total Coverage Amount Card
+                                    if (policy.coverages.isNotEmpty)
+                                      Expanded(
+                                        child: Container(
+                                          padding: const EdgeInsets.all(14),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                              colors: [
+                                                Colors.green.withValues(alpha: 0.08),
+                                                Colors.green.withValues(alpha: 0.03),
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(14),
+                                            border: Border.all(
+                                              color: Colors.green.withValues(alpha: 0.15),
+                                              width: 1,
+                                            ),
+                                          ),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Container(
+                                                    padding: const EdgeInsets.all(6),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.green.withValues(alpha: 0.1),
+                                                      borderRadius: BorderRadius.circular(8),
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.shield_outlined,
+                                                      color: Colors.green,
+                                                      size: 16,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  const Flexible(
+                                                    child: Text(
+                                                      'Toplam Teminat',
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color: AppColors.textSecondary,
+                                                        fontWeight: FontWeight.w500,
+                                                      ),
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              Text(
+                                                '${_getTotalCoverageAmount(policy.coverages).toStringAsFixed(0)} ${policy.currencyCode}',
+                                                style: const TextStyle(
+                                                  fontSize: 18,
+                                                  color: Colors.green,
+                                                  fontWeight: FontWeight.bold,
+                                                  letterSpacing: 0.3,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
 
                                 const SizedBox(height: 16),
@@ -414,12 +613,37 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
                                         'Bitiş Tarihi',
                                         _formatDate(policy.endDate),
                                       ),
+                                      const SizedBox(height: 12),
+                                      _buildModernInfoRow(
+                                        Icons.access_time,
+                                        'Poliçe Süresi',
+                                        _getDuration(policy.startDate, policy.endDate),
+                                      ),
+                                      if (_getRemainingDays(policy.endDate) > 0) ...[
+                                        const SizedBox(height: 12),
+                                        _buildModernInfoRow(
+                                          Icons.hourglass_bottom,
+                                          'Kalan Süre',
+                                          '${_getRemainingDays(policy.endDate)} Gün',
+                                          iconColor: _getRemainingDays(policy.endDate) < 30
+                                              ? Colors.orange
+                                              : AppColors.primary,
+                                        ),
+                                      ],
                                       if (policy.coverages.isNotEmpty) ...[
                                         const SizedBox(height: 12),
                                         _buildModernInfoRow(
                                           Icons.verified_user_outlined,
                                           'Teminat Sayısı',
-                                          '${policy.coverages.length} Teminat',
+                                          '${policy.coverages.length} Adet',
+                                        ),
+                                      ],
+                                      if (policy.applicationId != null) ...[
+                                        const SizedBox(height: 12),
+                                        _buildModernInfoRow(
+                                          Icons.description_outlined,
+                                          'Başvuru No',
+                                          '${policy.applicationId}',
                                         ),
                                       ],
                                     ],
@@ -450,72 +674,187 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
                                         Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Icon(
-                                              Icons.security,
-                                              size: 18,
-                                              color: Colors.blue.shade700,
+                                            Row(
+                                              children: [
+                                                Container(
+                                                  padding: const EdgeInsets.all(8),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.blue.shade700.withValues(alpha: 0.1),
+                                                    borderRadius: BorderRadius.circular(10),
+                                                  ),
+                                                  child: Icon(
+                                                    Icons.security,
+                                                    size: 18,
+                                                    color: Colors.blue.shade700,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 10),
+                                                Text(
+                                                  'Teminatlar',
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.blue.shade700,
+                                                  ),
+                                                ),
+                                              ],
                                             ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              'Teminatlar',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.blue.shade700,
+                                            Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                horizontal: 10,
+                                                vertical: 4,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.blue.shade700.withValues(alpha: 0.15),
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                '${policy.coverages.length} Adet',
+                                                style: TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.blue.shade700,
+                                                ),
                                               ),
                                             ),
                                           ],
                                         ),
-                                        const SizedBox(height: 12),
-                                        ...policy.coverages.take(3).map((coverage) {
-                                          return Padding(
-                                            padding: const EdgeInsets.only(bottom: 8),
+                                        const SizedBox(height: 14),
+                                        ...policy.coverages.map((coverage) {
+                                          return Container(
+                                            margin: const EdgeInsets.only(bottom: 10),
+                                            padding: const EdgeInsets.all(12),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: Colors.blue.withValues(alpha: 0.15),
+                                                width: 1,
+                                              ),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: Colors.blue.withValues(alpha: 0.05),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
                                             child: Row(
                                               children: [
                                                 Container(
-                                                  width: 6,
-                                                  height: 6,
+                                                  padding: const EdgeInsets.all(8),
                                                   decoration: BoxDecoration(
-                                                    color: Colors.blue.shade700,
-                                                    shape: BoxShape.circle,
+                                                    gradient: LinearGradient(
+                                                      colors: [
+                                                        Colors.blue.shade600,
+                                                        Colors.blue.shade700,
+                                                      ],
+                                                    ),
+                                                    borderRadius: BorderRadius.circular(8),
                                                   ),
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Expanded(
                                                   child: Text(
-                                                    coverage.name,
-                                                    style: TextStyle(
-                                                      fontSize: 13,
-                                                      color: Colors.blue.shade900,
-                                                      fontWeight: FontWeight.w500,
+                                                    coverage.coverageCode.isNotEmpty ? coverage.coverageCode : 'T',
+                                                    style: const TextStyle(
+                                                      fontSize: 12,
+                                                      fontWeight: FontWeight.bold,
+                                                      color: Colors.white,
                                                     ),
                                                   ),
                                                 ),
-                                                Text(
-                                                  '${coverage.amount.toStringAsFixed(2)} ${policy.currencyCode}',
-                                                  style: TextStyle(
-                                                    fontSize: 12,
-                                                    color: Colors.blue.shade700,
-                                                    fontWeight: FontWeight.bold,
+                                                const SizedBox(width: 12),
+                                                Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Text(
+                                                        coverage.name,
+                                                        style: TextStyle(
+                                                          fontSize: 13,
+                                                          color: Colors.blue.shade900,
+                                                          fontWeight: FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(height: 4),
+                                                      Row(
+                                                        children: [
+                                                          Icon(
+                                                            Icons.shield_outlined,
+                                                            size: 12,
+                                                            color: Colors.green.shade600,
+                                                          ),
+                                                          const SizedBox(width: 4),
+                                                          Text(
+                                                            'Teminat Limiti',
+                                                            style: TextStyle(
+                                                              fontSize: 11,
+                                                              color: AppColors.textSecondary.withValues(alpha: 0.7),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
                                                   ),
+                                                ),
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                                  children: [
+                                                    Text(
+                                                      '${(coverage.amount / 1000).toStringAsFixed(0)}K',
+                                                      style: TextStyle(
+                                                        fontSize: 16,
+                                                        color: Colors.green.shade700,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                    Text(
+                                                      policy.currencyCode,
+                                                      style: TextStyle(
+                                                        fontSize: 10,
+                                                        color: Colors.green.shade600,
+                                                        fontWeight: FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ],
                                             ),
                                           );
                                         }),
-                                        if (policy.coverages.length > 3)
-                                          Padding(
-                                            padding: const EdgeInsets.only(top: 4),
-                                            child: Text(
-                                              '+${policy.coverages.length - 3} teminat daha',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.blue.shade600,
-                                                fontStyle: FontStyle.italic,
-                                              ),
+                                      ],
+                                    ),
+                                  ),
+                                ] else ...[
+                                  const SizedBox(height: 16),
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: Colors.grey.withValues(alpha: 0.2),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.info_outline,
+                                          size: 20,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Text(
+                                            'Bu poliçeye henüz teminat eklenmemiştir',
+                                            style: TextStyle(
+                                              fontSize: 13,
+                                              color: Colors.grey.shade700,
+                                              fontWeight: FontWeight.w500,
                                             ),
                                           ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -561,7 +900,49 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
     );
   }
 
-  Widget _buildModernInfoRow(IconData icon, String label, String value) {
+  Widget _buildSummaryCard(String label, String value, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.15),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            icon,
+            color: Colors.white,
+            size: 20,
+          ),
+          const SizedBox(height: 10),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: Colors.white70,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernInfoRow(IconData icon, String label, String value, {Color? iconColor}) {
     return Row(
       children: [
         Container(
@@ -580,7 +961,7 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
           child: Icon(
             icon,
             size: 18,
-            color: AppColors.primary,
+            color: iconColor ?? AppColors.primary,
           ),
         ),
         const SizedBox(width: 12),
@@ -619,5 +1000,43 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
     } catch (e) {
       return dateString;
     }
+  }
+
+  int _getRemainingDays(String endDateString) {
+    try {
+      final endDate = DateTime.parse(endDateString);
+      final today = DateTime.now();
+      final difference = endDate.difference(today).inDays;
+      return difference > 0 ? difference : 0;
+    } catch (e) {
+      return 0;
+    }
+  }
+
+  String _getDuration(String startDateString, String endDateString) {
+    try {
+      final startDate = DateTime.parse(startDateString);
+      final endDate = DateTime.parse(endDateString);
+      final difference = endDate.difference(startDate).inDays;
+      final years = (difference / 365).floor();
+      final months = ((difference % 365) / 30).floor();
+
+      if (years > 0 && months > 0) {
+        return '$years Yıl $months Ay';
+      } else if (years > 0) {
+        return '$years Yıl';
+      } else if (months > 0) {
+        return '$months Ay';
+      } else {
+        return '$difference Gün';
+      }
+    } catch (e) {
+      return '1 Yıl';
+    }
+  }
+
+  double _getTotalCoverageAmount(List coverages) {
+    if (coverages.isEmpty) return 0.0;
+    return coverages.fold(0.0, (sum, coverage) => sum + (coverage.amount as num).toDouble());
   }
 }
