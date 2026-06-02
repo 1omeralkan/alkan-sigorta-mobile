@@ -7,6 +7,7 @@ import '../../../../core/services/storage_service.dart';
 import '../../../application/presentation/bloc/application_cubit.dart';
 import '../../../application/presentation/bloc/application_state.dart';
 import '../../../application/data/models/application_response.dart';
+import '../../data/models/collection_response.dart';
 import '../bloc/collection_cubit.dart';
 import '../bloc/collection_state.dart';
 import 'payment_dialog.dart';
@@ -124,7 +125,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
                       Icon(
                         Icons.error_outline,
                         size: 80,
-                        color: Colors.red.withOpacity(0.5),
+                        color: Colors.red.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: AppSizes.lg),
                       Text(
@@ -162,7 +163,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
                         Icon(
                           Icons.payment,
                           size: 80,
-                          color: AppColors.primary.withOpacity(0.5),
+                          color: AppColors.primary.withValues(alpha: 0.5),
                         ),
                         const SizedBox(height: AppSizes.lg),
                         const Text(
@@ -232,7 +233,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
                       );
 
                       return _buildApplicationGroup(application, collections);
-                    }).toList(),
+                    }),
                   ],
                 ),
               );
@@ -262,13 +263,13 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
           end: Alignment.bottomRight,
           colors: [
             AppColors.primary,
-            AppColors.primary.withOpacity(0.8),
+            AppColors.primary.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -330,7 +331,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -361,7 +362,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
                 child: Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
+                    color: Colors.white.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -412,7 +413,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -429,8 +430,8 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  AppColors.primary.withOpacity(0.1),
-                  AppColors.primary.withOpacity(0.05),
+                  AppColors.primary.withValues(alpha: 0.1),
+                  AppColors.primary.withValues(alpha: 0.05),
                 ],
               ),
               borderRadius: const BorderRadius.only(
@@ -443,7 +444,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withOpacity(0.2),
+                    color: AppColors.primary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(
@@ -470,7 +471,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
                         application.applicationNumber,
                         style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.textSecondary.withOpacity(0.7),
+                          color: AppColors.textSecondary.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
@@ -585,7 +586,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
     );
   }
 
-  Widget _buildInstallmentRow(collection, bool isPaid, int firstUnpaidInstallmentNumber) {
+  Widget _buildInstallmentRow(CollectionResponse collection, bool isPaid, int firstUnpaidInstallmentNumber) {
     final isOverdue = _isOverdue(collection.dueDate, collection.isPaid);
     final canPay = !isPaid && (collection.installmentNumber == firstUnpaidInstallmentNumber);
 
@@ -593,10 +594,10 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: (isPaid ? Colors.green : (isOverdue ? Colors.red : Colors.orange)).withOpacity(0.05),
+        color: (isPaid ? Colors.green : (isOverdue ? Colors.red : Colors.orange)).withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: (isPaid ? Colors.green : (isOverdue ? Colors.red : Colors.orange)).withOpacity(0.2),
+          color: (isPaid ? Colors.green : (isOverdue ? Colors.red : Colors.orange)).withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -605,7 +606,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: (isPaid ? Colors.green : (isOverdue ? Colors.red : Colors.orange)).withOpacity(0.1),
+              color: (isPaid ? Colors.green : (isOverdue ? Colors.red : Colors.orange)).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Icon(
@@ -645,7 +646,7 @@ class _CollectionsListPageState extends State<CollectionsListPage> {
                   'Vade: ${_formatDate(collection.dueDate)}',
                   style: TextStyle(
                     fontSize: 11,
-                    color: AppColors.textSecondary.withOpacity(0.8),
+                    color: AppColors.textSecondary.withValues(alpha: 0.8),
                   ),
                 ),
               ],

@@ -169,6 +169,16 @@ class _HomePageState extends State<HomePage> {
                     ),
                     _buildFeatureCard(
                       context,
+                      icon: Icons.shield_outlined,
+                      title: 'Poliçelerim',
+                      subtitle: 'Aktif Poliçeler',
+                      color: Colors.teal,
+                      onTap: () {
+                        Navigator.pushNamed(context, '/policies');
+                      },
+                    ),
+                    _buildFeatureCard(
+                      context,
                       icon: Icons.payment_outlined,
                       title: 'Ödemelerim',
                       subtitle: 'Tahsilat İşlemleri',

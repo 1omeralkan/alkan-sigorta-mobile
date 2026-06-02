@@ -407,7 +407,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           // Telefon Ülke Kodu Dropdown
                           DropdownButtonFormField<int>(
                             key: const Key('phone_country_dropdown'),
-                            value: _selectedPhoneCountryId,
+                            initialValue: _selectedPhoneCountryId,
                             decoration: InputDecoration(
                               labelText: 'Telefon Ülke Kodu',
                               prefixIcon: const Icon(Icons.flag_outlined),
@@ -419,7 +419,6 @@ class _RegisterPageState extends State<RegisterPage> {
                             items: state.isLoadingCountries
                                 ? []
                                 : state.countries
-                                    .where((country) => country.id != null)
                                     .map((country) {
                                     return DropdownMenuItem<int>(
                                       value: country.id,
@@ -481,7 +480,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           // Adres Ülke Dropdown
                           DropdownButtonFormField<int>(
                             key: const Key('address_country_dropdown'),
-                            value: _selectedAddressCountryId,
+                            initialValue: _selectedAddressCountryId,
                             decoration: InputDecoration(
                               labelText: 'Adres Ülkesi',
                               prefixIcon: const Icon(Icons.public_outlined),
@@ -493,7 +492,6 @@ class _RegisterPageState extends State<RegisterPage> {
                             items: state.isLoadingCountries
                                 ? []
                                 : state.countries
-                                    .where((country) => country.id != null)
                                     .map((country) {
                                     return DropdownMenuItem<int>(
                                       value: country.id,
@@ -522,7 +520,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           // Adres Şehir Dropdown
                           DropdownButtonFormField<int>(
                             key: const Key('address_city_dropdown'),
-                            value: _selectedAddressCityId,
+                            initialValue: _selectedAddressCityId,
                             decoration: InputDecoration(
                               labelText: 'Adres Şehri',
                               prefixIcon: const Icon(Icons.location_on_outlined),
@@ -534,7 +532,6 @@ class _RegisterPageState extends State<RegisterPage> {
                             items: state.isLoadingCities
                                 ? []
                                 : state.cities
-                                    .where((city) => city.id != null)
                                     .map((city) {
                                     return DropdownMenuItem<int>(
                                       value: city.id,

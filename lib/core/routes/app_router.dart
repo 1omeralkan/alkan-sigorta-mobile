@@ -20,6 +20,10 @@ import '../../features/collection/data/repositories/collection_repository_impl.d
 import '../../features/product/presentation/bloc/product_cubit.dart';
 import '../../features/product/data/datasources/product_remote_data_source.dart';
 import '../../features/product/data/repositories/product_repository_impl.dart';
+import '../../features/policy/presentation/pages/policies_list_page.dart';
+import '../../features/policy/presentation/bloc/policy_cubit.dart';
+import '../../features/policy/data/datasources/policy_remote_data_source.dart';
+import '../../features/policy/data/repositories/policy_repository_impl.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/services/storage_service.dart';
 
@@ -116,6 +120,20 @@ class AppRouter {
                 BlocProvider(create: (_) => applicationCubit),
               ],
               child: CollectionsListPage(applicationId: applicationId),
+            );
+          },
+        );
+      case '/policies':
+        return MaterialPageRoute(
+          builder: (_) {
+            final dioClient = DioClient();
+            final policyRemoteDataSource = PolicyRemoteDataSourceImpl(dioClient);
+            final policyRepository = PolicyRepositoryImpl(policyRemoteDataSource);
+            final policyCubit = PolicyCubit(policyRepository);
+
+            return BlocProvider(
+              create: (_) => policyCubit,
+              child: const PoliciesListPage(),
             );
           },
         );

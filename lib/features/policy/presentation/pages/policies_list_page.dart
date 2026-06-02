@@ -1,106 +1,58 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:quickalert/quickalert.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/services/storage_service.dart';
-import '../bloc/application_cubit.dart';
-import '../bloc/application_state.dart';
+import '../bloc/policy_cubit.dart';
+import '../bloc/policy_state.dart';
 
-class ApplicationsListPage extends StatefulWidget {
-  const ApplicationsListPage({super.key});
+class PoliciesListPage extends StatefulWidget {
+  const PoliciesListPage({super.key});
 
   @override
-  State<ApplicationsListPage> createState() => _ApplicationsListPageState();
+  State<PoliciesListPage> createState() => _PoliciesListPageState();
 }
 
-class _ApplicationsListPageState extends State<ApplicationsListPage> {
+class _PoliciesListPageState extends State<PoliciesListPage> {
   final StorageService _storageService = StorageService();
 
   @override
   void initState() {
     super.initState();
-    _loadApplications();
+    _loadPolicies();
   }
 
-  Future<void> _loadApplications() async {
+  Future<void> _loadPolicies() async {
     final customerId = await _storageService.getCustomerId();
     if (customerId != null && mounted) {
-      context.read<ApplicationCubit>().loadApplications(customerId);
-    }
-  }
-
-  String _getStatusText(String status) {
-    switch (status.toUpperCase()) {
-      case 'AWAITING_PAYMENT':
-        return 'Ödeme Bekleniyor';
-      case 'PENDING':
-        return 'Beklemede';
-      case 'APPROVED':
-        return 'Onaylandı';
-      case 'REJECTED':
-        return 'Reddedildi';
-      case 'COMPLETED':
-        return 'Tamamlandı';
-      case 'CANCELLED':
-        return 'İptal Edildi';
-      default:
-        return status;
+      context.read<PolicyCubit>().loadPolicies(customerId);
     }
   }
 
   Color _getStatusColor(String status) {
     switch (status.toUpperCase()) {
-      case 'AWAITING_PAYMENT':
-        return Colors.amber;
-      case 'PENDING':
-        return Colors.orange;
-      case 'APPROVED':
+      case 'ACTIVE':
         return Colors.green;
-      case 'REJECTED':
-        return Colors.red;
-      case 'COMPLETED':
-        return Colors.blue;
       case 'CANCELLED':
-        return Colors.grey.shade700;
+        return Colors.red;
+      case 'EXPIRED':
+        return Colors.orange;
       default:
         return Colors.grey;
     }
   }
 
-  bool _canCancelApplication(String status) {
-    return status.toUpperCase() == 'AWAITING_PAYMENT' || status.toUpperCase() == 'PENDING';
-  }
-
-  Future<void> _showCancelConfirmDialog(int applicationId, String applicationNumber) async {
-    QuickAlert.show(
-      context: context,
-      type: QuickAlertType.confirm,
-      title: 'Başvuru İptali',
-      text: 'Başvuru No: $applicationNumber\n\nBu başvuruyu iptal etmek istediğinize emin misiniz?',
-      confirmBtnText: 'İptal Et',
-      cancelBtnText: 'Vazgeç',
-      confirmBtnColor: Colors.red,
-      onConfirmBtnTap: () async {
-        Navigator.pop(context);
-
-        final customerId = await _storageService.getCustomerId();
-        if (customerId != null && mounted) {
-          context.read<ApplicationCubit>().cancelApplication(applicationId, customerId);
-
-          if (mounted) {
-            QuickAlert.show(
-              context: context,
-              type: QuickAlertType.success,
-              title: 'Başarılı',
-              text: 'Başvuru başarıyla iptal edildi',
-              autoCloseDuration: const Duration(seconds: 2),
-              showConfirmBtn: false,
-            );
-          }
-        }
-      },
-    );
+  IconData _getStatusIcon(String status) {
+    switch (status.toUpperCase()) {
+      case 'ACTIVE':
+        return Icons.check_circle;
+      case 'CANCELLED':
+        return Icons.cancel;
+      case 'EXPIRED':
+        return Icons.schedule;
+      default:
+        return Icons.help;
+    }
   }
 
   @override
@@ -111,7 +63,7 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
         backgroundColor: AppColors.primary,
         elevation: 0,
         title: const Text(
-          'Başvurularım',
+          'Poliçelerim',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w600,
@@ -123,9 +75,9 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: BlocBuilder<ApplicationCubit, ApplicationState>(
+      body: BlocBuilder<PolicyCubit, PolicyState>(
         builder: (context, state) {
-          if (state is ApplicationListLoading) {
+          if (state is PolicyLoading) {
             return const Center(
               child: CircularProgressIndicator(
                 color: AppColors.primary,
@@ -133,7 +85,7 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
             );
           }
 
-          if (state is ApplicationListFailure) {
+          if (state is PolicyFailure) {
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(AppSizes.lg),
@@ -156,7 +108,7 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                     ),
                     const SizedBox(height: AppSizes.lg),
                     ElevatedButton.icon(
-                      onPressed: _loadApplications,
+                      onPressed: _loadPolicies,
                       icon: const Icon(Icons.refresh),
                       label: const Text('Tekrar Dene'),
                       style: ElevatedButton.styleFrom(
@@ -170,8 +122,8 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
             );
           }
 
-          if (state is ApplicationListLoaded) {
-            if (state.applications.isEmpty) {
+          if (state is PolicyLoaded) {
+            if (state.policies.isEmpty) {
               return Center(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSizes.lg),
@@ -179,13 +131,13 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
-                        Icons.assignment,
-                        size: 80,
+                        Icons.shield_outlined,
+                        size: 100,
                         color: AppColors.primary.withValues(alpha: 0.5),
                       ),
                       const SizedBox(height: AppSizes.lg),
                       const Text(
-                        'Başvurularınız',
+                        'Poliçeleriniz',
                         style: TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.bold,
@@ -194,10 +146,19 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                       ),
                       const SizedBox(height: AppSizes.md),
                       const Text(
-                        'Henüz başvuru bulunmamaktadır.',
+                        'Henüz poliçe bulunmamaktadır.',
                         style: TextStyle(
                           fontSize: 16,
                           color: AppColors.textSecondary,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Onaylanan başvurularınız poliçeye dönüştürüldüğünde\nburada görüntülenecektir.',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textSecondary.withValues(alpha: 0.7),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -208,13 +169,13 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
             }
 
             return RefreshIndicator(
-              onRefresh: _loadApplications,
+              onRefresh: _loadPolicies,
               color: AppColors.primary,
               child: ListView.builder(
                 padding: const EdgeInsets.all(AppSizes.md),
-                itemCount: state.applications.length,
+                itemCount: state.policies.length,
                 itemBuilder: (context, index) {
-                  final application = state.applications[index];
+                  final policy = state.policies[index];
                   return Container(
                     margin: const EdgeInsets.only(bottom: AppSizes.lg),
                     decoration: BoxDecoration(
@@ -229,7 +190,7 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: _getStatusColor(application.status).withValues(alpha: 0.1),
+                          color: _getStatusColor(policy.policyStatus).withValues(alpha: 0.1),
                           blurRadius: 12,
                           offset: const Offset(0, 4),
                           spreadRadius: 0,
@@ -258,8 +219,8 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                                   begin: Alignment.topCenter,
                                   end: Alignment.bottomCenter,
                                   colors: [
-                                    _getStatusColor(application.status),
-                                    _getStatusColor(application.status).withValues(alpha: 0.6),
+                                    _getStatusColor(policy.policyStatus),
+                                    _getStatusColor(policy.policyStatus).withValues(alpha: 0.6),
                                   ],
                                 ),
                               ),
@@ -270,11 +231,11 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                // Header with product name and status
+                                // Header with policy number and status
                                 Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Product icon
+                                    // Policy icon
                                     Container(
                                       padding: const EdgeInsets.all(12),
                                       decoration: BoxDecoration(
@@ -296,7 +257,7 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                                         ],
                                       ),
                                       child: const Icon(
-                                        Icons.shield_outlined,
+                                        Icons.shield,
                                         color: Colors.white,
                                         size: 28,
                                       ),
@@ -306,9 +267,9 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
                                         children: [
-                                          Text(
-                                            application.productName,
-                                            style: const TextStyle(
+                                          const Text(
+                                            'Poliçe',
+                                            style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
                                               color: AppColors.textPrimary,
@@ -317,7 +278,7 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                                           ),
                                           const SizedBox(height: 4),
                                           Text(
-                                            'No: ${application.applicationNumber}',
+                                            'No: ${policy.id}',
                                             style: TextStyle(
                                               fontSize: 13,
                                               color: AppColors.textSecondary.withValues(alpha: 0.8),
@@ -337,24 +298,35 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                                           begin: Alignment.topLeft,
                                           end: Alignment.bottomRight,
                                           colors: [
-                                            _getStatusColor(application.status).withValues(alpha: 0.15),
-                                            _getStatusColor(application.status).withValues(alpha: 0.08),
+                                            _getStatusColor(policy.policyStatus).withValues(alpha: 0.15),
+                                            _getStatusColor(policy.policyStatus).withValues(alpha: 0.08),
                                           ],
                                         ),
                                         borderRadius: BorderRadius.circular(12),
                                         border: Border.all(
-                                          color: _getStatusColor(application.status).withValues(alpha: 0.3),
+                                          color: _getStatusColor(policy.policyStatus).withValues(alpha: 0.3),
                                           width: 1.5,
                                         ),
                                       ),
-                                      child: Text(
-                                        _getStatusText(application.status),
-                                        style: TextStyle(
-                                          color: _getStatusColor(application.status),
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 12,
-                                          letterSpacing: 0.5,
-                                        ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(
+                                            _getStatusIcon(policy.policyStatus),
+                                            size: 14,
+                                            color: _getStatusColor(policy.policyStatus),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            policy.statusText,
+                                            style: TextStyle(
+                                              color: _getStatusColor(policy.policyStatus),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 12,
+                                              letterSpacing: 0.5,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
@@ -398,7 +370,7 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                                           ),
                                           const SizedBox(width: 12),
                                           const Text(
-                                            'Toplam Tutar',
+                                            'Prim Tutarı',
                                             style: TextStyle(
                                               fontSize: 14,
                                               color: AppColors.textSecondary,
@@ -408,7 +380,7 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                                         ],
                                       ),
                                       Text(
-                                        '${application.amount.toStringAsFixed(2)} ₺',
+                                        policy.formattedAmount,
                                         style: const TextStyle(
                                           fontSize: 20,
                                           color: AppColors.primary,
@@ -422,7 +394,7 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
 
                                 const SizedBox(height: 16),
 
-                                // Details section
+                                // Policy details section
                                 Container(
                                   padding: const EdgeInsets.all(16),
                                   decoration: BoxDecoration(
@@ -433,86 +405,119 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                                     children: [
                                       _buildModernInfoRow(
                                         Icons.calendar_today_outlined,
-                                        'Başvuru Tarihi',
-                                        _formatDate(application.applicationDate),
+                                        'Başlangıç Tarihi',
+                                        _formatDate(policy.startDate),
                                       ),
-                                      if (application.paymentTypeName != null) ...[
+                                      const SizedBox(height: 12),
+                                      _buildModernInfoRow(
+                                        Icons.event_outlined,
+                                        'Bitiş Tarihi',
+                                        _formatDate(policy.endDate),
+                                      ),
+                                      if (policy.coverages.isNotEmpty) ...[
                                         const SizedBox(height: 12),
                                         _buildModernInfoRow(
-                                          Icons.payment_outlined,
-                                          'Ödeme Tipi',
-                                          application.paymentTypeName!,
-                                        ),
-                                      ],
-                                      if (application.installmentCount != null) ...[
-                                        const SizedBox(height: 12),
-                                        _buildModernInfoRow(
-                                          Icons.format_list_numbered_outlined,
-                                          'Taksit',
-                                          '${application.installmentCount} Ay',
-                                        ),
-                                      ],
-                                      if (application.installmentAmount != null) ...[
-                                        const SizedBox(height: 12),
-                                        _buildModernInfoRow(
-                                          Icons.monetization_on_outlined,
-                                          'Aylık Ödeme',
-                                          '${application.installmentAmount!.toStringAsFixed(2)} ₺',
+                                          Icons.verified_user_outlined,
+                                          'Teminat Sayısı',
+                                          '${policy.coverages.length} Teminat',
                                         ),
                                       ],
                                     ],
                                   ),
                                 ),
 
-                                // Action Buttons (only for non-cancelled applications)
-                                if (application.status.toUpperCase() != 'CANCELLED') ...[
+                                // Coverages section
+                                if (policy.coverages.isNotEmpty) ...[
                                   const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      // Payments button
-                                      Expanded(
-                                        child: ElevatedButton.icon(
-                                          onPressed: () {
-                                            Navigator.pushNamed(
-                                              context,
-                                              '/collections',
-                                              arguments: application.id,
-                                            );
-                                          },
-                                          icon: const Icon(Icons.payment, size: 18),
-                                          label: const Text('Ödemeler'),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: AppColors.primary,
-                                            foregroundColor: Colors.white,
-                                            padding: const EdgeInsets.symmetric(vertical: 12),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(12),
-                                            ),
-                                          ),
-                                        ),
+                                  Container(
+                                    padding: const EdgeInsets.all(16),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Colors.blue.shade50,
+                                          Colors.white,
+                                        ],
                                       ),
-                                      if (_canCancelApplication(application.status)) ...[
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: OutlinedButton.icon(
-                                            onPressed: () => _showCancelConfirmDialog(
-                                              application.id,
-                                              application.applicationNumber,
+                                      borderRadius: BorderRadius.circular(16),
+                                      border: Border.all(
+                                        color: Colors.blue.withValues(alpha: 0.2),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.security,
+                                              size: 18,
+                                              color: Colors.blue.shade700,
                                             ),
-                                            icon: const Icon(Icons.cancel_outlined, size: 18),
-                                            label: const Text('İptal Et'),
-                                            style: OutlinedButton.styleFrom(
-                                              foregroundColor: Colors.red.shade700,
-                                              side: BorderSide(color: Colors.red.shade300, width: 1.5),
-                                              padding: const EdgeInsets.symmetric(vertical: 12),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius: BorderRadius.circular(12),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              'Teminatlar',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.blue.shade700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                        ...policy.coverages.take(3).map((coverage) {
+                                          return Padding(
+                                            padding: const EdgeInsets.only(bottom: 8),
+                                            child: Row(
+                                              children: [
+                                                Container(
+                                                  width: 6,
+                                                  height: 6,
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.blue.shade700,
+                                                    shape: BoxShape.circle,
+                                                  ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                Expanded(
+                                                  child: Text(
+                                                    coverage.name,
+                                                    style: TextStyle(
+                                                      fontSize: 13,
+                                                      color: Colors.blue.shade900,
+                                                      fontWeight: FontWeight.w500,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Text(
+                                                  '${coverage.amount.toStringAsFixed(2)} ${policy.currencyCode}',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color: Colors.blue.shade700,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        }),
+                                        if (policy.coverages.length > 3)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 4),
+                                            child: Text(
+                                              '+${policy.coverages.length - 3} teminat daha',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.blue.shade600,
+                                                fontStyle: FontStyle.italic,
                                               ),
                                             ),
                                           ),
-                                        ),
                                       ],
-                                    ],
+                                    ),
                                   ),
                                 ],
                               ],
@@ -534,13 +539,13 @@ class _ApplicationsListPageState extends State<ApplicationsListPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
-                    Icons.assignment,
+                    Icons.shield_outlined,
                     size: 80,
                     color: AppColors.primary.withValues(alpha: 0.5),
                   ),
                   const SizedBox(height: AppSizes.lg),
                   const Text(
-                    'Başvurularınız',
+                    'Poliçeleriniz',
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
