@@ -274,14 +274,6 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
                                   Icons.account_balance_wallet,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _buildSummaryCard(
-                                  'Toplam Teminat',
-                                  '${(totalCoverage / 1000).toStringAsFixed(0)}K ₺',
-                                  Icons.security,
-                                ),
-                              ),
                             ],
                           ),
                         ],
@@ -531,73 +523,6 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(width: 12),
-                                    // Total Coverage Amount Card
-                                    if (policy.coverages.isNotEmpty)
-                                      Expanded(
-                                        child: Container(
-                                          padding: const EdgeInsets.all(14),
-                                          decoration: BoxDecoration(
-                                            gradient: LinearGradient(
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                              colors: [
-                                                Colors.green.withValues(alpha: 0.08),
-                                                Colors.green.withValues(alpha: 0.03),
-                                              ],
-                                            ),
-                                            borderRadius: BorderRadius.circular(14),
-                                            border: Border.all(
-                                              color: Colors.green.withValues(alpha: 0.15),
-                                              width: 1,
-                                            ),
-                                          ),
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Container(
-                                                    padding: const EdgeInsets.all(6),
-                                                    decoration: BoxDecoration(
-                                                      color: Colors.green.withValues(alpha: 0.1),
-                                                      borderRadius: BorderRadius.circular(8),
-                                                    ),
-                                                    child: const Icon(
-                                                      Icons.shield_outlined,
-                                                      color: Colors.green,
-                                                      size: 16,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  const Flexible(
-                                                    child: Text(
-                                                      'Toplam Teminat',
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color: AppColors.textSecondary,
-                                                        fontWeight: FontWeight.w500,
-                                                      ),
-                                                      overflow: TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Text(
-                                                '${_getTotalCoverageAmount(policy.coverages).toStringAsFixed(0)} ${policy.currencyCode}',
-                                                style: const TextStyle(
-                                                  fontSize: 18,
-                                                  color: Colors.green,
-                                                  fontWeight: FontWeight.bold,
-                                                  letterSpacing: 0.3,
-                                                ),
-                                                overflow: TextOverflow.ellipsis,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
                                   ],
                                 ),
 
@@ -832,39 +757,6 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
                                             ),
                                           );
                                         }),
-                                      ],
-                                    ),
-                                  ),
-                                ] else ...[
-                                  const SizedBox(height: 16),
-                                  Container(
-                                    padding: const EdgeInsets.all(16),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      borderRadius: BorderRadius.circular(16),
-                                      border: Border.all(
-                                        color: Colors.grey.withValues(alpha: 0.2),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          Icons.info_outline,
-                                          size: 20,
-                                          color: Colors.grey.shade600,
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: Text(
-                                            'Bu poliçeye henüz teminat eklenmemiştir',
-                                            style: TextStyle(
-                                              fontSize: 13,
-                                              color: Colors.grey.shade700,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                          ),
-                                        ),
                                       ],
                                     ),
                                   ),
