@@ -1,7 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/services/storage_service.dart';
+import '../../../application/domain/repositories/application_repository.dart';
+import '../../../collection/domain/repositories/collection_repository.dart';
+import '../../../policy/domain/repositories/policy_repository.dart';
+import '../bloc/home_cubit.dart';
+import '../bloc/home_state.dart';
+import '../widgets/welcome_header.dart';
+import '../widgets/dashboard_stat_card.dart';
+import '../widgets/quick_action_card.dart';
+import '../widgets/section_header.dart';
+import '../widgets/activity_timeline_item.dart';
+import '../widgets/upcoming_payment_card.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -13,20 +25,60 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final StorageService _storageService = StorageService();
   String _userName = '';
+  int? _customerId;
+  HomeCubit? _homeCubit;
+  bool _isInitialized = false;
 
   @override
   void initState() {
     super.initState();
-    _loadUserName();
+    _loadUserData();
   }
 
-  Future<void> _loadUserName() async {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_isInitialized) {
+      _homeCubit = HomeCubit(
+        applicationRepository: context.read<ApplicationRepository>(),
+        collectionRepository: context.read<CollectionRepository>(),
+        policyRepository: context.read<PolicyRepository>(),
+      );
+      _isInitialized = true;
+
+      // Load data if customerId is available
+      if (_customerId != null) {
+        _homeCubit!.loadDashboardData(_customerId!);
+      }
+    }
+  }
+
+  Future<void> _loadUserData() async {
     final name = await _storageService.getCustomerName();
+    final id = await _storageService.getCustomerId();
+
     if (mounted) {
       setState(() {
         _userName = name ?? 'Kullanıcı';
+        _customerId = id;
       });
+
+      if (_customerId != null && _isInitialized) {
+        _homeCubit!.loadDashboardData(_customerId!);
+      }
     }
+  }
+
+  Future<void> _refreshData() async {
+    if (_customerId != null && _homeCubit != null) {
+      await _homeCubit!.loadDashboardData(_customerId!);
+    }
+  }
+
+  @override
+  void dispose() {
+    _homeCubit?.close();
+    super.dispose();
   }
 
   @override
@@ -35,298 +87,273 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: AppColors.background,
       body: Column(
         children: [
-          // Sabit Header - Design System'e uygun
-          Container(
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.shadow,
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: SafeArea(
-              bottom: false,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSizes.md,
-                  vertical: AppSizes.md,
-                ),
-                child: Row(
-                  children: [
-                    // User Avatar
-                    Container(
-                      padding: const EdgeInsets.all(AppSizes.sm),
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryLight,
-                        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                      ),
-                      child: Icon(
-                        Icons.person_outline,
-                        color: AppColors.textOnPrimary,
-                        size: AppSizes.iconMedium,
-                      ),
+          WelcomeHeader(
+            userName: _userName,
+            onLogoutTap: () => _showLogoutDialog(context),
+          ),
+          Expanded(
+            child: _homeCubit == null
+                ? const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primary,
                     ),
-                    const SizedBox(width: AppSizes.md),
-                    // User Info
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Hoş Geldiniz',
-                            style: TextStyle(
-                              color: AppColors.textOnPrimary.withOpacity(0.8),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            _userName,
-                            style: const TextStyle(
-                              color: AppColors.textOnPrimary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                  )
+                : BlocBuilder<HomeCubit, HomeState>(
+                    bloc: _homeCubit,
+                    builder: (context, state) {
+                if (state is HomeLoading) {
+                  return const Center(
+                    child: CircularProgressIndicator(
+                      color: AppColors.primary,
                     ),
-                    // Logout Button
-                    Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        onTap: () => _showLogoutDialog(context),
-                        borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                        child: Container(
-                          padding: const EdgeInsets.all(AppSizes.sm),
-                          decoration: BoxDecoration(
-                            color: AppColors.primaryLight,
-                            borderRadius: BorderRadius.circular(AppSizes.radiusSmall),
-                          ),
-                          child: Icon(
-                            Icons.logout,
-                            color: AppColors.textOnPrimary,
-                            size: AppSizes.iconMedium,
+                  );
+                }
+
+                if (state is HomeError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: AppColors.error.withValues(alpha: 0.5),
+                        ),
+                        const SizedBox(height: AppSizes.md),
+                        const Text(
+                          'Bir Hata Oluştu',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.textPrimary,
                           ),
                         ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // Kaydırılabilir İçerik
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(AppSizes.lg),
-              children: [
-
-                // Özellik Kartları Grid
-                const Text(
-                  'Hızlı İşlemler',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: AppSizes.lg),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  mainAxisSpacing: AppSizes.md,
-                  crossAxisSpacing: AppSizes.md,
-                  childAspectRatio: 1.1,
-                  children: [
-                    _buildFeatureCard(
-                      context,
-                      icon: Icons.add_circle_outline,
-                      title: 'Yeni Başvuru',
-                      subtitle: 'Başvuru Oluştur',
-                      color: Colors.blue,
-                      onTap: () {
-                        Navigator.pushNamed(context, '/application-create');
-                      },
-                    ),
-                    _buildFeatureCard(
-                      context,
-                      icon: Icons.assignment_outlined,
-                      title: 'Başvurularım',
-                      subtitle: 'Tüm Başvurular',
-                      color: Colors.orange,
-                      onTap: () {
-                        Navigator.pushNamed(context, '/applications');
-                      },
-                    ),
-                    _buildFeatureCard(
-                      context,
-                      icon: Icons.shield_outlined,
-                      title: 'Poliçelerim',
-                      subtitle: 'Aktif Poliçeler',
-                      color: Colors.teal,
-                      onTap: () {
-                        Navigator.pushNamed(context, '/policies');
-                      },
-                    ),
-                    _buildFeatureCard(
-                      context,
-                      icon: Icons.payment_outlined,
-                      title: 'Ödemelerim',
-                      subtitle: 'Tahsilat İşlemleri',
-                      color: Colors.green,
-                      onTap: () {
-                        Navigator.pushNamed(context, '/collections');
-                      },
-                    ),
-                    _buildFeatureCard(
-                      context,
-                      icon: Icons.info_outline,
-                      title: 'Yardım',
-                      subtitle: 'Destek & Bilgi',
-                      color: Colors.purple,
-                      onTap: () {
-                        _showInfoDialog(context);
-                      },
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: AppSizes.xl),
-
-                // Bilgilendirme Kartı
-                Container(
-                  padding: const EdgeInsets.all(AppSizes.lg),
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.primary.withOpacity(0.1),
-                        AppColors.primary.withOpacity(0.05),
+                        const SizedBox(height: AppSizes.sm),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSizes.xl),
+                          child: Text(
+                            state.message,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSizes.lg),
+                        ElevatedButton.icon(
+                          onPressed: _refreshData,
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Tekrar Dene'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: AppColors.textOnPrimary,
+                          ),
+                        ),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
-                    border: Border.all(
-                      color: AppColors.primary.withOpacity(0.3),
-                    ),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(AppSizes.sm),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                  );
+                }
+
+                if (state is HomeLoaded) {
+                  return RefreshIndicator(
+                    onRefresh: _refreshData,
+                    color: AppColors.primary,
+                    child: ListView(
+                      padding: const EdgeInsets.all(AppSizes.lg),
+                      children: [
+                        // Statistics Cards
+                        const SectionHeader(
+                          title: 'Özet',
+                          icon: Icons.dashboard_outlined,
                         ),
-                        child: Icon(
-                          Icons.verified_user,
-                          color: AppColors.primary,
-                          size: AppSizes.iconLarge,
-                        ),
-                      ),
-                      const SizedBox(width: AppSizes.md),
-                      const Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                        const SizedBox(height: AppSizes.md),
+                        Row(
                           children: [
-                            Text(
-                              'Alkan Sigorta',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: AppColors.textPrimary,
+                            Expanded(
+                              child: DashboardStatCard(
+                                icon: Icons.assignment_outlined,
+                                title: 'Başvurular',
+                                value: '${state.summary.totalApplications}',
+                                color: Colors.blue,
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/applications');
+                                },
                               ),
                             ),
-                            SizedBox(height: 4),
-                            Text(
-                              'Güvenli ve hızlı sigorta işlemleri',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: AppColors.textSecondary,
+                            const SizedBox(width: AppSizes.md),
+                            Expanded(
+                              child: DashboardStatCard(
+                                icon: Icons.shield_outlined,
+                                title: 'Aktif Poliçe',
+                                value: '${state.summary.activePolicies}',
+                                color: Colors.teal,
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/policies');
+                                },
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: AppSizes.md),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: DashboardStatCard(
+                                icon: Icons.pending_actions_outlined,
+                                title: 'Bekleyen',
+                                value: '${state.summary.pendingApplications}',
+                                color: Colors.orange,
+                              ),
+                            ),
+                            const SizedBox(width: AppSizes.md),
+                            Expanded(
+                              child: DashboardStatCard(
+                                icon: Icons.payment_outlined,
+                                title: 'Toplam Borç',
+                                value: '${state.summary.totalPaymentsAmount.toStringAsFixed(0)}₺',
+                                color: Colors.green,
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/collections');
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+
+                        // Upcoming Payments
+                        if (state.upcomingPayments.isNotEmpty) ...[
+                          const SizedBox(height: AppSizes.xl),
+                          SectionHeader(
+                            title: 'Yaklaşan Ödemeler',
+                            icon: Icons.schedule_outlined,
+                            actionText: 'Tümü',
+                            onActionTap: () {
+                              Navigator.pushNamed(context, '/collections');
+                            },
+                          ),
+                          const SizedBox(height: AppSizes.md),
+                          ...state.upcomingPayments.map((payment) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: AppSizes.md),
+                              child: UpcomingPaymentCard(
+                                title: 'Taksit Ödemesi',
+                                amount: payment.installmentAmount,
+                                dueDate: payment.dueDate,
+                                installmentNumber: payment.installmentNumber,
+                                onTap: () {
+                                  Navigator.pushNamed(context, '/collections');
+                                },
+                              ),
+                            );
+                          }),
+                        ],
+
+                        // Recent Activities
+                        if (state.recentActivities.isNotEmpty) ...[
+                          const SizedBox(height: AppSizes.xl),
+                          const SectionHeader(
+                            title: 'Son Aktiviteler',
+                            icon: Icons.history_outlined,
+                          ),
+                          const SizedBox(height: AppSizes.md),
+                          ...state.recentActivities.asMap().entries.map((entry) {
+                            final index = entry.key;
+                            final activity = entry.value;
+                            return ActivityTimelineItem(
+                              activity: activity,
+                              isLast: index == state.recentActivities.length - 1,
+                            );
+                          }),
+                        ],
+
+                        const SizedBox(height: AppSizes.xl),
+
+                        // Quick Actions
+                        const SectionHeader(
+                          title: 'Hızlı İşlemler',
+                          icon: Icons.bolt_outlined,
+                        ),
+                        const SizedBox(height: AppSizes.md),
+                        GridView.count(
+                          crossAxisCount: 3,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          mainAxisSpacing: AppSizes.md,
+                          crossAxisSpacing: AppSizes.md,
+                          childAspectRatio: 0.95,
+                          children: [
+                            QuickActionCard(
+                              icon: Icons.add_circle_outline,
+                              title: 'Yeni Başvuru',
+                              subtitle: 'Başvuru Yap',
+                              color: Colors.blue,
+                              onTap: () {
+                                Navigator.pushNamed(context, '/application-create');
+                              },
+                            ),
+                            QuickActionCard(
+                              icon: Icons.assignment_outlined,
+                              title: 'Başvurular',
+                              subtitle: 'Listele',
+                              color: Colors.orange,
+                              onTap: () {
+                                Navigator.pushNamed(context, '/applications');
+                              },
+                            ),
+                            QuickActionCard(
+                              icon: Icons.shield_outlined,
+                              title: 'Poliçelerim',
+                              subtitle: 'Görüntüle',
+                              color: Colors.teal,
+                              onTap: () {
+                                Navigator.pushNamed(context, '/policies');
+                              },
+                            ),
+                            QuickActionCard(
+                              icon: Icons.payment_outlined,
+                              title: 'Ödemeler',
+                              subtitle: 'Tahsilat',
+                              color: Colors.green,
+                              onTap: () {
+                                Navigator.pushNamed(context, '/collections');
+                              },
+                            ),
+                            QuickActionCard(
+                              icon: Icons.refresh_outlined,
+                              title: 'Yenile',
+                              subtitle: 'Güncelle',
+                              color: Colors.deepPurple,
+                              onTap: _refreshData,
+                            ),
+                            QuickActionCard(
+                              icon: Icons.help_outline,
+                              title: 'Yardım',
+                              subtitle: 'Destek',
+                              color: Colors.purple,
+                              onTap: () {
+                                _showInfoDialog(context);
+                              },
+                            ),
+                          ],
+                        ),
+
+                        const SizedBox(height: AppSizes.md),
+                      ],
+                    ),
+                  );
+                }
+
+                // Initial state - show loading
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: AppColors.primary,
                   ),
-                ),
-              ],
-            ),
+                );
+              },
+                    ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard(
-    BuildContext context, {
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: color.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                icon,
-                color: color,
-                size: 32,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -334,7 +361,7 @@ class _HomePageState extends State<HomePage> {
   void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
         ),
@@ -355,7 +382,7 @@ class _HomePageState extends State<HomePage> {
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSizes.lg,
@@ -376,7 +403,7 @@ class _HomePageState extends State<HomePage> {
               await _storageService.deleteCustomerId();
               await _storageService.deleteCustomerName();
               if (mounted) {
-                Navigator.pop(context);
+                Navigator.pop(dialogContext);
                 Navigator.pushReplacementNamed(context, '/');
               }
             },

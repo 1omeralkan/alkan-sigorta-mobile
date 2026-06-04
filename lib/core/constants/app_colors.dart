@@ -31,8 +31,9 @@ class AppColors {
   static const Color warning = Color(0xFFF57C00);
   static const Color info = Color(0xFF1976D2);
 
-  // ardımcı renkler
+  // Yardımcı renkler
   static const Color divider = Color(0xFFE0E0E0);
+  static const Color border = Color(0xFFE5E7EB);
   static const Color disabled = Color(0xFFBDBDBD);
   static const Color shadow = Color(0x1A000000);
 }
