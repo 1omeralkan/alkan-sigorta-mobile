@@ -24,6 +24,10 @@ import '../../features/policy/presentation/pages/policies_list_page.dart';
 import '../../features/policy/presentation/bloc/policy_cubit.dart';
 import '../../features/policy/data/datasources/policy_remote_data_source.dart';
 import '../../features/policy/data/repositories/policy_repository_impl.dart';
+import '../../features/customer/presentation/pages/profile_page.dart';
+import '../../features/customer/presentation/bloc/profile_cubit.dart';
+import '../../features/customer/data/datasources/customer_remote_data_source.dart';
+import '../../features/customer/data/repositories/customer_repository_impl.dart';
 import '../../core/network/dio_client.dart';
 import '../../core/services/storage_service.dart';
 
@@ -139,6 +143,20 @@ class AppRouter {
             return BlocProvider(
               create: (_) => policyCubit,
               child: const PoliciesListPage(),
+            );
+          },
+        );
+      case '/profile':
+        return MaterialPageRoute(
+          builder: (_) {
+            final dioClient = DioClient();
+            final customerRemoteDataSource = CustomerRemoteDataSourceImpl(dioClient);
+            final customerRepository = CustomerRepositoryImpl(customerRemoteDataSource);
+            final profileCubit = ProfileCubit(customerRepository);
+
+            return BlocProvider(
+              create: (_) => profileCubit,
+              child: const ProfilePage(),
             );
           },
         );

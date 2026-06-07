@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:quickalert/quickalert.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_sizes.dart';
 import '../../../../core/services/storage_service.dart';
@@ -71,15 +72,27 @@ class _PaymentDialogState extends State<PaymentDialog> {
     return BlocConsumer<CollectionCubit, CollectionState>(
       listener: (context, state) {
         if (state is PaymentSuccess) {
-          Navigator.pop(context);
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.success,
+            title: 'Ödeme Başarılı!',
+            text: 'Ödemeniz başarıyla tamamlandı.',
+            autoCloseDuration: const Duration(seconds: 2),
+            showConfirmBtn: false,
+          );
+          Future.delayed(const Duration(milliseconds: 2100), () {
+            if (context.mounted) {
+              Navigator.pop(context);
+            }
+          });
         } else if (state is PaymentFailure) {
-          // Hata durumunda dialog açık kalsın, kullanıcı tekrar deneyebilsin
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-            ),
+          QuickAlert.show(
+            context: context,
+            type: QuickAlertType.error,
+            title: 'Ödeme Başarısız',
+            text: state.message,
+            confirmBtnText: 'Tamam',
+            confirmBtnColor: AppColors.error,
           );
         }
       },

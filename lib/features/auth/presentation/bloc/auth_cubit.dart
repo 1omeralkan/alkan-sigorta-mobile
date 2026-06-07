@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/services/storage_service.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../domain/repositories/auth_repository.dart';
 import 'auth_state.dart';
 
@@ -22,7 +23,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       emit(const AuthSuccess());
     } catch (e) {
-      emit(AuthFailure(e.toString().replaceAll('Exception: ', '')));
+      emit(AuthFailure(ErrorHandler.getErrorMessage(e)));
     }
   }
 }

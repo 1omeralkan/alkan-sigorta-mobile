@@ -24,7 +24,6 @@ class _LoginPageState extends State<LoginPage> {
   static const String _subtitle = 'Sisteme Giriş Yapın';
   static const String _emailLabel = 'E-posta veya TCKN';
   static const String _passwordLabel = 'Şifre';
-  static const String _forgotPasswordText = 'Şifremi Unuttum';
   static const String _loginButtonText = 'Giriş Yap';
   static const String _noAccountText = 'Hesabınız yok mu?';
   static const String _registerText = 'Hemen Kayıt Ol';
@@ -130,17 +129,20 @@ class _LoginPageState extends State<LoginPage> {
                                 borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
                               ),
                             ),
-                            keyboardType: TextInputType.emailAddress,
+                            keyboardType: TextInputType.text,
                             textInputAction: TextInputAction.next,
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'E-posta alanı boş bırakılamaz';
+                                return 'Bu alan boş bırakılamaz';
                               }
+                              final trimmed = value.trim();
                               final emailRegex = RegExp(
                                 r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
                               );
-                              if (!emailRegex.hasMatch(value.trim())) {
-                                return 'Geçerli bir e-posta adresi giriniz';
+                              final tcknRegex = RegExp(r'^\d{11}$');
+
+                              if (!emailRegex.hasMatch(trimmed) && !tcknRegex.hasMatch(trimmed)) {
+                                return 'Geçerli bir e-posta veya 11 haneli TCKN giriniz';
                               }
                               return null;
                             },
@@ -179,20 +181,7 @@ class _LoginPageState extends State<LoginPage> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: AppSizes.sm),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                _forgotPasswordText,
-                                style: textTheme.labelMedium?.copyWith(
-                                  color: AppColors.secondary,
-                                ),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: AppSizes.md),
+                          const SizedBox(height: AppSizes.lg),
                           SizedBox(
                             width: double.infinity,
                             height: AppSizes.buttonHeightLarge,

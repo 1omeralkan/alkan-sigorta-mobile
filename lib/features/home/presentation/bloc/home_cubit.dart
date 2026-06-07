@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/utils/error_handler.dart';
 import '../../data/models/dashboard_summary.dart';
 import '../../data/models/recent_activity.dart';
 import '../../../application/domain/repositories/application_repository.dart';
@@ -54,7 +55,7 @@ class HomeCubit extends Cubit<HomeState> {
         upcomingPayments: upcomingPayments,
       ));
     } catch (e) {
-      emit(HomeError('Veriler yüklenirken bir hata oluştu: ${e.toString()}'));
+      emit(HomeError(ErrorHandler.getErrorMessage(e)));
     }
   }
 

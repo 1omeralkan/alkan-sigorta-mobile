@@ -72,6 +72,15 @@ class _HomePageState extends State<HomePage> {
   Future<void> _refreshData() async {
     if (_customerId != null && _homeCubit != null) {
       await _homeCubit!.loadDashboardData(_customerId!);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Veriler güncellendi'),
+            duration: Duration(seconds: 2),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     }
   }
 
@@ -222,17 +231,19 @@ class _HomePageState extends State<HomePage> {
                         ),
 
                         // Upcoming Payments
-                        if (state.upcomingPayments.isNotEmpty) ...[
-                          const SizedBox(height: AppSizes.xl),
-                          SectionHeader(
-                            title: 'Yaklaşan Ödemeler',
-                            icon: Icons.schedule_outlined,
-                            actionText: 'Tümü',
-                            onActionTap: () {
-                              Navigator.pushNamed(context, '/collections');
-                            },
-                          ),
-                          const SizedBox(height: AppSizes.md),
+                        const SizedBox(height: AppSizes.xl),
+                        SectionHeader(
+                          title: 'Yaklaşan Ödemeler',
+                          icon: Icons.schedule_outlined,
+                          actionText: state.upcomingPayments.isNotEmpty ? 'Tümü' : null,
+                          onActionTap: state.upcomingPayments.isNotEmpty
+                              ? () {
+                                  Navigator.pushNamed(context, '/collections');
+                                }
+                              : null,
+                        ),
+                        const SizedBox(height: AppSizes.md),
+                        if (state.upcomingPayments.isNotEmpty)
                           ...state.upcomingPayments.map((payment) {
                             return Padding(
                               padding: const EdgeInsets.only(bottom: AppSizes.md),
@@ -246,17 +257,41 @@ class _HomePageState extends State<HomePage> {
                                 },
                               ),
                             );
-                          }),
-                        ],
+                          })
+                        else
+                          Container(
+                            padding: const EdgeInsets.all(AppSizes.xl),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.event_available_outlined,
+                                  size: 48,
+                                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                ),
+                                const SizedBox(height: AppSizes.sm),
+                                const Text(
+                                  'Yaklaşan ödeme bulunmuyor',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
 
                         // Recent Activities
-                        if (state.recentActivities.isNotEmpty) ...[
-                          const SizedBox(height: AppSizes.xl),
-                          const SectionHeader(
-                            title: 'Son Aktiviteler',
-                            icon: Icons.history_outlined,
-                          ),
-                          const SizedBox(height: AppSizes.md),
+                        const SizedBox(height: AppSizes.xl),
+                        const SectionHeader(
+                          title: 'Son Aktiviteler',
+                          icon: Icons.history_outlined,
+                        ),
+                        const SizedBox(height: AppSizes.md),
+                        if (state.recentActivities.isNotEmpty)
                           ...state.recentActivities.asMap().entries.map((entry) {
                             final index = entry.key;
                             final activity = entry.value;
@@ -264,8 +299,32 @@ class _HomePageState extends State<HomePage> {
                               activity: activity,
                               isLast: index == state.recentActivities.length - 1,
                             );
-                          }),
-                        ],
+                          })
+                        else
+                          Container(
+                            padding: const EdgeInsets.all(AppSizes.xl),
+                            decoration: BoxDecoration(
+                              color: AppColors.surface,
+                              borderRadius: BorderRadius.circular(AppSizes.radiusMedium),
+                            ),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  Icons.inbox_outlined,
+                                  size: 48,
+                                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                ),
+                                const SizedBox(height: AppSizes.sm),
+                                const Text(
+                                  'Henüz aktivite bulunmuyor',
+                                  style: TextStyle(
+                                    color: AppColors.textSecondary,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
 
                         const SizedBox(height: AppSizes.xl),
 
@@ -327,12 +386,12 @@ class _HomePageState extends State<HomePage> {
                               onTap: _refreshData,
                             ),
                             QuickActionCard(
-                              icon: Icons.help_outline,
-                              title: 'Yardım',
-                              subtitle: 'Destek',
-                              color: Colors.purple,
+                              icon: Icons.person_outline,
+                              title: 'Profil',
+                              subtitle: 'Hesabım',
+                              color: Colors.blueGrey,
                               onTap: () {
-                                _showInfoDialog(context);
+                                Navigator.pushNamed(context, '/profile');
                               },
                             ),
                           ],
@@ -399,12 +458,13 @@ class _HomePageState extends State<HomePage> {
           ),
           ElevatedButton(
             onPressed: () async {
+              final navigator = Navigator.of(context);
               await _storageService.deleteToken();
               await _storageService.deleteCustomerId();
               await _storageService.deleteCustomerName();
               if (mounted) {
                 Navigator.pop(dialogContext);
-                Navigator.pushReplacementNamed(context, '/');
+                navigator.pushReplacementNamed('/');
               }
             },
             style: ElevatedButton.styleFrom(
@@ -429,52 +489,4 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _showInfoDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.info, color: AppColors.primary),
-            SizedBox(width: 12),
-            Text('Yardım & Destek'),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Alkan Sigorta Mobil Uygulaması',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-            SizedBox(height: 12),
-            Text('• Sigorta başvurusu oluşturabilirsiniz'),
-            Text('• Başvurularınızı takip edebilirsiniz'),
-            Text('• Ödeme işlemlerinizi yapabilirsiniz'),
-            SizedBox(height: 12),
-            Text(
-              'Destek için: info@alkansigorta.com',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 12,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Kapat'),
-          ),
-        ],
-      ),
-    );
-  }
 }

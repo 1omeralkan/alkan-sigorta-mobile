@@ -25,7 +25,16 @@ class _PoliciesListPageState extends State<PoliciesListPage> {
   Future<void> _loadPolicies() async {
     final customerId = await _storageService.getCustomerId();
     if (customerId != null && mounted) {
-      context.read<PolicyCubit>().loadPolicies(customerId);
+      await context.read<PolicyCubit>().loadPolicies(customerId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Poliçeler güncellendi'),
+            duration: Duration(seconds: 2),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
     }
   }
 
